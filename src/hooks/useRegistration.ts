@@ -25,7 +25,7 @@ const handleRegister = async (values: RegisterFormValues): Promise<void> => {
     console.log('Starting registration process with values:', values);
 
     // Use your MySQL API instead of Supabase
-    const response = await fetch('http://localhost:3001/api/auth/register', {
+    const response = await fetch('https://one2fingers-backend.onrender.com/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
@@ -40,7 +40,7 @@ const handleRegister = async (values: RegisterFormValues): Promise<void> => {
     console.log('✅ User registered successfully:', data.user.name);
     
     // Auto-login after registration
-    const loginResponse = await fetch('http://localhost:3001/api/auth/login', {
+    const loginResponse = await fetch('https://one2fingers-backend.onrender.com/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

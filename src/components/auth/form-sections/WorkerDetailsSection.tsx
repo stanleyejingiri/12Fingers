@@ -17,7 +17,7 @@ export function WorkerDetailsSection({ form }: WorkerDetailsSectionProps) {
   const { data: categories, isLoading: categoriesLoading } = useQuery({
     queryKey: ['workerCategories'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:3001/api/workers/categories');
+      const res = await fetch('https://one2fingers-backend.onrender.com/api/workers/categories');
       const data = await res.json();
       return data.categories;
     },

@@ -21,7 +21,7 @@ export const createCheckoutSession = async ({
   paymentMethod,
 }: CheckoutSessionParams): Promise<string> => {
   // Use local API instead of Supabase Edge Function
-  const response = await fetch('http://localhost:3001/api/create-checkout', {
+  const response = await fetch('https://one2fingers-backend.onrender.com/api/create-checkout', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

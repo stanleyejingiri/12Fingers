@@ -23,7 +23,7 @@ export function WalletBalance() {
   const fetchWalletBalance = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:3001/api/wallets/balance/${user.id}`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/balance/${user.id}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch wallet balance');
@@ -129,7 +129,7 @@ export function WalletBalance() {
     
     try {
       setRefreshing(true);
-      const response = await fetch(`http://localhost:3001/api/wallets/balance/${user.id}`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/balance/${user.id}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch wallet balance');
@@ -288,7 +288,7 @@ export function WalletBalance() {
     
     try {
       setRefreshing(true);
-      const response = await fetch(`http://localhost:3001/api/wallets/balance/${user.id}`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/balance/${user.id}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch wallet balance');
@@ -448,12 +448,12 @@ export function WalletBalance() {
     try {
       setRefreshing(true);
       // First try to get balance
-      const response = await fetch(`http://localhost:3001/api/wallets/balance/${user.id}`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/balance/${user.id}`);
       
       if (response.status === 404) {
         // Wallet doesn't exist, create one
         console.log("💰 Wallet not found, creating new wallet...");
-        const createResponse = await fetch(`http://localhost:3001/api/wallets/create`, {
+        const createResponse = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/create`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: user.id })
@@ -464,7 +464,7 @@ export function WalletBalance() {
         }
         
         // Now fetch the new wallet balance (should be 0)
-        const newResponse = await fetch(`http://localhost:3001/api/wallets/balance/${user.id}`);
+        const newResponse = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/balance/${user.id}`);
         const newData = await newResponse.json();
         setBalance(newData.balance || 0);
         console.log("✅ Wallet created with balance: 0");

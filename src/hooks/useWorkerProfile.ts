@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "./useAuth";
 import { WorkerProfile } from "@/types/worker";
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = 'https://one2fingers-backend.onrender.com/api';
 
 export const useWorkerProfile = (workerId?: string) => {
   const queryClient = useQueryClient();
@@ -149,7 +149,7 @@ import { useAuth } from "./useAuth";
 import { WorkerProfile } from "@/types/worker";
 import { useState } from "react";  // ← add this import
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = 'https://one2fingers-backend.onrender.com/api';
 
 export const useWorkerProfile = (workerId?: string) => {
   const queryClient = useQueryClient();
@@ -293,7 +293,7 @@ import { useAuth } from "./useAuth";
 import { WorkerProfile } from "@/types/worker";
 import { useState } from "react";  // ← add this import
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = 'https://one2fingers-backend.onrender.com/api';
 
 export const useWorkerProfile = (workerId?: string) => {
   const queryClient = useQueryClient();

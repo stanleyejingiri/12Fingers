@@ -33,7 +33,7 @@ export function RecentTransactions() {
   const fetchTransactions = async () => {
   try {
     setLoading(true);
-    const response = await fetch(`http://localhost:3001/api/wallets/transactions/${user.id}?limit=10`);
+    const response = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/transactions/${user.id}?limit=10`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch transactions');

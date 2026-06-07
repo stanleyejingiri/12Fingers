@@ -71,7 +71,7 @@ const BookingSuccess = () => {
         console.log("🔍 Verifying payment session:", sessionId);
         
         // Call backend to verify Stripe session
-        const response = await fetch(`http://localhost:3001/api/verify-payment?session_id=${sessionId}`);
+        const response = await fetch(`https://one2fingers-backend.onrender.com/api/verify-payment?session_id=${sessionId}`);
         
         if (!response.ok) {
           throw new Error(`Failed to verify payment: ${response.status}`);

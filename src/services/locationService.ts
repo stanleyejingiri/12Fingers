@@ -604,7 +604,7 @@ export const findLocationInDatabase = async (
     
     // Use relative URL for production, absolute for development
     const baseUrl = window.location.origin.includes('localhost') 
-      ? 'http://localhost:3001' 
+      ? 'https://one2fingers-backend.onrender.com' 
       : '';
     
     const response = await fetch(`${baseUrl}/api/locations/match?${params}`, {
@@ -638,7 +638,7 @@ export const findLocationInDatabase = async (
 export const getLocationHierarchy = async () => {
   try {
     const baseUrl = window.location.origin.includes('localhost') 
-      ? 'http://localhost:3001' 
+      ? 'https://one2fingers-backend.onrender.com' 
       : '';
     
     const response = await fetch(`${baseUrl}/api/locations/hierarchy`);
@@ -680,7 +680,7 @@ export const getLocationHierarchy = async () => {
 export const getCountries = async () => {
   try {
     const baseUrl = window.location.origin.includes('localhost') 
-      ? 'http://localhost:3001' 
+      ? 'https://one2fingers-backend.onrender.com' 
       : '';
     
     const response = await fetch(`${baseUrl}/api/locations/countries`);
@@ -710,7 +710,7 @@ export const getStates = async (countryId: string) => {
   
   try {
     const baseUrl = window.location.origin.includes('localhost') 
-      ? 'http://localhost:3001' 
+      ? 'https://one2fingers-backend.onrender.com' 
       : '';
     
     const response = await fetch(`${baseUrl}/api/locations/states/${countryId}`);
@@ -740,7 +740,7 @@ export const getCities = async (stateId: string) => {
   
   try {
     const baseUrl = window.location.origin.includes('localhost') 
-      ? 'http://localhost:3001' 
+      ? 'https://one2fingers-backend.onrender.com' 
       : '';
     
     const response = await fetch(`${baseUrl}/api/locations/cities/${stateId}`);

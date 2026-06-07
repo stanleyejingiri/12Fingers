@@ -41,7 +41,7 @@ export const ServicePackagesManager = ({ workerId }: ServicePackagesManagerProps
   const fetchPackages = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:3001/api/packages/worker/${workerId}`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/packages/worker/${workerId}`);
       const data = await response.json();
       if (data.success) {
         setPackages(data.packages || []);
@@ -69,8 +69,8 @@ export const ServicePackagesManager = ({ workerId }: ServicePackagesManagerProps
 
     try {
       const url = editingId 
-        ? `http://localhost:3001/api/packages/${editingId}`
-        : "http://localhost:3001/api/packages";
+        ? `https://one2fingers-backend.onrender.com/api/packages/${editingId}`
+        : "https://one2fingers-backend.onrender.com/api/packages";
       const method = editingId ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -101,7 +101,7 @@ export const ServicePackagesManager = ({ workerId }: ServicePackagesManagerProps
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this package?")) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/packages/${id}`, { method: "DELETE" });
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/packages/${id}`, { method: "DELETE" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       toast({ title: "Success", description: "Package deleted" });

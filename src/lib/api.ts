@@ -1,6 +1,6 @@
 // src/lib/api.ts
-//const API_BASE_URL = 'http://localhost:3001/api';
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+//const API_BASE_URL = 'https://one2fingers-backend.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://one2fingers-backend.onrender.com/api';
 
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL}${endpoint}`;

@@ -210,7 +210,7 @@ export default function AdminDashboard() {
   const fetchPendingWithdrawals = async () => {
     try {
       setLoading(prev => ({ ...prev, withdrawals: true }));
-      const data = await fetchWithRetry('http://localhost:3001/api/withdrawals/pending');
+      const data = await fetchWithRetry('https://one2fingers-backend.onrender.com/api/withdrawals/pending');
       setPendingWithdrawals(data.withdrawals || []);
     } catch (error) {
       handleFetchError(error, 'withdrawals');
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       setLoading(prev => ({ ...prev, users: true }));
-      const data = await fetchWithRetry('http://localhost:3001/api/admin/users');
+      const data = await fetchWithRetry('https://one2fingers-backend.onrender.com/api/admin/users');
       setUsers(data.users || []);
     } catch (error) {
       handleFetchError(error, 'users');
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
   const fetchWorkers = async () => {
     try {
       setLoading(prev => ({ ...prev, workers: true }));
-      const data = await fetchWithRetry('http://localhost:3001/api/admin/workers');
+      const data = await fetchWithRetry('https://one2fingers-backend.onrender.com/api/admin/workers');
       setWorkers(data.workers || []);
     } catch (error) {
       handleFetchError(error, 'workers');
@@ -246,7 +246,7 @@ export default function AdminDashboard() {
   const fetchBookings = async () => {
     try {
       setLoading(prev => ({ ...prev, bookings: true }));
-      const data = await fetchWithRetry('http://localhost:3001/api/bookings');
+      const data = await fetchWithRetry('https://one2fingers-backend.onrender.com/api/bookings');
       setBookings(data.bookings || []);
     } catch (error) {
       handleFetchError(error, 'bookings');
@@ -258,7 +258,7 @@ export default function AdminDashboard() {
 	const fetchStats = async () => {
 		try {
 		  setLoading(prev => ({ ...prev, stats: true }));
-		  const data = await fetchWithRetry('http://localhost:3001/api/admin/stats');
+		  const data = await fetchWithRetry('https://one2fingers-backend.onrender.com/api/admin/stats');
 		  setStats(data.stats || null);
 		} catch (error) {
 		  handleFetchError(error, 'statistics');
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
 	const fetchVerificationRequests = async () => {
 		try {
 		setLoadingVerification(true);
-		const response = await fetch('http://localhost:3001/api/verification/pending');
+		const response = await fetch('https://one2fingers-backend.onrender.com/api/verification/pending');
 		const data = await response.json();
 		if (data.success) {
 		  setPendingVerificationRequests(data.requests || []);
@@ -284,7 +284,7 @@ export default function AdminDashboard() {
 	
 	const fetchVerifiedWorkersCount = async () => {
 	  try {
-		const response = await fetch('http://localhost:3001/api/admin/workers');
+		const response = await fetch('https://one2fingers-backend.onrender.com/api/admin/workers');
 		const data = await response.json();
 		if (data.success) {
 		  const verifiedCount = data.workers.filter((w: any) => w.is_verified === 1).length;
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
     try {
       setProcessingId(withdrawalId);
       
-      const response = await fetch(`http://localhost:3001/api/withdrawals/process/${withdrawalId}`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/withdrawals/process/${withdrawalId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
     if (!selectedUserId || !suspendReason.trim()) return;
     
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/users/${selectedUserId}/suspend`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/admin/users/${selectedUserId}/suspend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
 
   const handleUnsuspendUser = async (userId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/users/${userId}/unsuspend`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/admin/users/${userId}/unsuspend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminId: user?.id })
@@ -424,7 +424,7 @@ export default function AdminDashboard() {
     if (!selectedWorkerId || !suspendReason.trim()) return;
     
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/workers/${selectedWorkerId}/suspend`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/admin/workers/${selectedWorkerId}/suspend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -456,7 +456,7 @@ export default function AdminDashboard() {
 
   const handleUnsuspendWorker = async (workerId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/workers/${workerId}/unsuspend`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/admin/workers/${workerId}/unsuspend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminId: user?.id })
@@ -483,7 +483,7 @@ export default function AdminDashboard() {
 	
 	const handleApproveVerification = async (requestId: string) => {
 		try {
-			const response = await fetch(`http://localhost:3001/api/verification/approve/${requestId}`, {
+			const response = await fetch(`https://one2fingers-backend.onrender.com/api/verification/approve/${requestId}`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ admin_id: user?.id, notes: adminNotes }),
@@ -509,7 +509,7 @@ export default function AdminDashboard() {
 			return;
 		}
 		try {
-			const response = await fetch(`http://localhost:3001/api/verification/reject/${requestId}`, {
+			const response = await fetch(`https://one2fingers-backend.onrender.com/api/verification/reject/${requestId}`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ admin_id: user?.id, reason: rejectReason }),
@@ -1072,7 +1072,7 @@ export default function AdminDashboard() {
                     {req.document_url && (
                       <div className="mt-2">
                         <a 
-                          href={`http://localhost:3001${req.document_url}`} 
+                          href={`https://one2fingers-backend.onrender.com${req.document_url}`} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="text-sm text-blue-600 hover:underline flex items-center gap-1"

@@ -32,7 +32,7 @@ export const useFavorites = () => {
     setLoading(prev => ({ ...prev, [workerId]: true }));
 
     try {
-      const response = await fetch('http://localhost:3001/api/favorites/toggle', {
+      const response = await fetch('https://one2fingers-backend.onrender.com/api/favorites/toggle', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export const useFavorites = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/favorites/check?user_id=${user.id}&worker_id=${workerId}`
+        `https://one2fingers-backend.onrender.com/api/favorites/check?user_id=${user.id}&worker_id=${workerId}`
       );
 
       const data: CheckFavoriteResponse = await response.json();
@@ -97,7 +97,7 @@ export const useFavorites = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/favorites/user/${user.id}`
+        `https://one2fingers-backend.onrender.com/api/favorites/user/${user.id}`
       );
 
       const data = await response.json();

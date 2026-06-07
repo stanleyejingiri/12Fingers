@@ -64,7 +64,7 @@ export default function WorkerVerification() {
 
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3001/api/verification/request", {
+      const response = await fetch("https://one2fingers-backend.onrender.com/api/verification/request", {
         method: "POST",
         body: data,
       });

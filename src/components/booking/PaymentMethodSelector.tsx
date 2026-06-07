@@ -77,7 +77,7 @@ export const PaymentMethodSelector = ({
   const fetchWalletBalance = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:3001/api/wallets/balance/${user.id}`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/balance/${user.id}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch wallet balance');

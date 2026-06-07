@@ -1,7 +1,7 @@
 /*import { useQuery } from "@tanstack/react-query";
 import { mockWorkers } from "@/data/workers";
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = 'https://one2fingers-backend.onrender.com/api';
 
 export const useWorkers = () => {
   return useQuery({
@@ -144,7 +144,7 @@ export const useWorkers = () => {
 /*import { useQuery } from "@tanstack/react-query";
 import { mockWorkers } from "@/data/workers";
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = 'https://one2fingers-backend.onrender.com/api';
 
 export const useWorkers = () => {
   return useQuery({
@@ -234,7 +234,7 @@ export const useWorkers = () => {
 import { useQuery } from "@tanstack/react-query";
 import { mockWorkers } from "@/data/workers";
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = 'https://one2fingers-backend.onrender.com/api';
 
 export const useWorkers = () => {
   return useQuery({

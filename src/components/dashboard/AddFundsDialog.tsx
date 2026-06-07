@@ -60,7 +60,7 @@ export function AddFundsDialog({ open, onOpenChange, onAddFunds, userId }: AddFu
     try {
       setLoading(true);
       
-      const response = await fetch('http://localhost:3001/api/wallets/add-funds', {
+      const response = await fetch('https://one2fingers-backend.onrender.com/api/wallets/add-funds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -121,7 +121,7 @@ export function AddFundsDialog({ open, onOpenChange, onAddFunds, userId }: AddFu
     setLoading(true);
     
     // Call new Stripe endpoint
-    const response = await fetch('http://localhost:3001/api/stripe/create-deposit-session', {
+    const response = await fetch('https://one2fingers-backend.onrender.com/api/stripe/create-deposit-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -293,7 +293,7 @@ export function AddFundsDialog({
       setLoading(true);
       
       // Call Stripe endpoint
-      const response = await fetch('http://localhost:3001/api/stripe/create-deposit-session', {
+      const response = await fetch('https://one2fingers-backend.onrender.com/api/stripe/create-deposit-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

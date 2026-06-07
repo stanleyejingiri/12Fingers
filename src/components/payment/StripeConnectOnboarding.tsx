@@ -23,7 +23,7 @@ export const StripeConnectOnboarding = ({ workerId, onConnected }: StripeConnect
 
   const checkStripeConnection = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/workers/${workerId}/stripe-status`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/workers/${workerId}/stripe-status`);
       if (response.ok) {
         const data = await response.json();
         setIsConnected(data.stripe_connected || false);
@@ -40,7 +40,7 @@ export const StripeConnectOnboarding = ({ workerId, onConnected }: StripeConnect
       console.log("🔗 Starting Stripe Connect for worker:", workerId);
       
       // Create Stripe Connect account link
-      const response = await fetch('http://localhost:3001/api/create-connect-account', {
+      const response = await fetch('https://one2fingers-backend.onrender.com/api/create-connect-account', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export const StripeConnectOnboarding = ({ workerId, onConnected }: StripeConnect
         // 🔴 NEW: Save account ID to database BEFORE redirect
         if (accountId) {
           try {
-            await fetch(`http://localhost:3001/api/workers/${workerId}/stripe-connect`, {
+            await fetch(`https://one2fingers-backend.onrender.com/api/workers/${workerId}/stripe-connect`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 

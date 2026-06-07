@@ -30,7 +30,7 @@ export default function PaymentSuccess() {
     try {
       console.log('💰 Updating wallet with deposit:', { userId, amount: paymentAmount, sessionId });
       
-      const response = await fetch('http://localhost:3001/api/wallets/stripe-success', {
+      const response = await fetch('https://one2fingers-backend.onrender.com/api/wallets/stripe-success', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -73,13 +73,13 @@ export default function PaymentSuccess() {
         setMessage('Processing your payment...');
         
         // Poll for payment status
-        const response = await fetch(`http://localhost:3001/api/stripe/check-payment/${sessionId}`);
+        const response = await fetch(`https://one2fingers-backend.onrender.com/api/stripe/check-payment/${sessionId}`);
         
         if (!response.ok) {
           console.log('⚠️ Check payment endpoint not available, assuming success');
           
 		  console.log('🔍 ABOUT TO CALL WALLET UPDATE:', { userId, paymentAmount, sessionId });
-			const response = await fetch('http://localhost:3001/api/wallets/stripe-success', {
+			const response = await fetch('https://one2fingers-backend.onrender.com/api/wallets/stripe-success', {
 			  method: 'POST',
 			  headers: { 'Content-Type': 'application/json' },
 			  body: JSON.stringify({

@@ -62,13 +62,13 @@ export default function WorkerDashboard() {
       try {
         setLoadingStats(true);
         
-        const balanceResponse = await fetch(`http://localhost:3001/api/wallets/balance/${user?.id}`);
+        const balanceResponse = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/balance/${user?.id}`);
         if (balanceResponse.ok) {
           const balanceData = await balanceResponse.json();
           setAvailableBalance(balanceData.balance || 0);
         }
         
-        const bookingsResponse = await fetch(`http://localhost:3001/api/bookings/worker/${worker.id}`);
+        const bookingsResponse = await fetch(`https://one2fingers-backend.onrender.com/api/bookings/worker/${worker.id}`);
         if (bookingsResponse.ok) {
           const bookingsData = await bookingsResponse.json();
           const completed = bookingsData.bookings.filter((b: any) => b.status === 'completed').length;
@@ -79,7 +79,7 @@ export default function WorkerDashboard() {
           setTotalEarnings(earnings);
         }
         
-        const transactionsResponse = await fetch(`http://localhost:3001/api/wallets/transactions/${user?.id}`);
+        const transactionsResponse = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/transactions/${user?.id}`);
         if (transactionsResponse.ok) {
           const transactionsData = await transactionsResponse.json();
           const releaseTotal = transactionsData.transactions

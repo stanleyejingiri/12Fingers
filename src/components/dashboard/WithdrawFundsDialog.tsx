@@ -74,7 +74,7 @@ export function WithdrawFundsDialog({
     try {
       setLoading(true);
       
-      const response = await fetch('http://localhost:3001/api/withdrawals/request', {
+      const response = await fetch('https://one2fingers-backend.onrender.com/api/withdrawals/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

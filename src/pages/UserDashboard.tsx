@@ -36,7 +36,7 @@ export default function UserDashboard() {
       try {
         console.log("📋 Fetching user bookings from local API...");
         
-        const response = await fetch(`http://localhost:3001/api/bookings/user/${user.id}`);
+        const response = await fetch(`https://one2fingers-backend.onrender.com/api/bookings/user/${user.id}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch bookings: ${response.status}`);
@@ -53,7 +53,7 @@ export default function UserDashboard() {
       } catch (error) {
         console.error("❌ Error fetching bookings:", error);
         try {
-          const allResponse = await fetch(`http://localhost:3001/api/bookings`);
+          const allResponse = await fetch(`https://one2fingers-backend.onrender.com/api/bookings`);
           const allResult = await allResponse.json();
           if (allResult.success) {
             const userBookings = allResult.bookings.filter((booking: any) => 
@@ -79,7 +79,7 @@ export default function UserDashboard() {
 
       try {
         console.log("🔔 Fetching user notifications...");
-        const response = await fetch(`http://localhost:3001/api/notifications/${user?.id}`);
+        const response = await fetch(`https://one2fingers-backend.onrender.com/api/notifications/${user?.id}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch notifications: ${response.status}`);
@@ -103,7 +103,7 @@ export default function UserDashboard() {
     console.log('🔘 Close button clicked for notification:', notificationId);
     
     try {
-      const response = await fetch(`http://localhost:3001/api/notifications/${notificationId}/read`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/notifications/${notificationId}/read`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -181,7 +181,7 @@ export default function UserDashboard() {
       const booking = bookings.find((b: any) => b.id === bookingId);
       if (!booking) throw new Error('Booking not found');
 
-      const walletResponse = await fetch(`http://localhost:3001/api/wallets/balance/${user?.id}`);
+      const walletResponse = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/balance/${user?.id}`);
       const walletData = await walletResponse.json();
       const currentBalance = walletData.balance || 0;
       
@@ -196,7 +196,7 @@ export default function UserDashboard() {
       
       toast({ title: "Processing Payment", description: "Holding funds in escrow..." });
       
-      const response = await fetch('http://localhost:3001/api/payments/escrow', {
+      const response = await fetch('https://one2fingers-backend.onrender.com/api/payments/escrow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -241,7 +241,7 @@ export default function UserDashboard() {
         description: "Confirming job completion and releasing payment...",
       });
 
-      const response = await fetch(`http://localhost:3001/api/bookings/${bookingId}/confirm-completion`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/bookings/${bookingId}/confirm-completion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ client_id: user?.id })

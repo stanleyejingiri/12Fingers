@@ -57,7 +57,7 @@ export function WorkerBookings({ statusFilter, workerId, onMessageClick }: Worke
   const fetchWorkerBookings = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`http://localhost:3001/api/bookings/worker/${workerId}`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/bookings/worker/${workerId}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch bookings: ${response.status}`);
@@ -102,7 +102,7 @@ export function WorkerBookings({ statusFilter, workerId, onMessageClick }: Worke
 
   const handleAcceptOffer = async (bookingId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/bookings/${bookingId}/accept`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/bookings/${bookingId}/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ worker_id: workerId })
@@ -133,7 +133,7 @@ export function WorkerBookings({ statusFilter, workerId, onMessageClick }: Worke
 
   const handleRejectOffer = async (bookingId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/bookings/${bookingId}/reject`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/bookings/${bookingId}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ worker_id: workerId })
@@ -164,7 +164,7 @@ export function WorkerBookings({ statusFilter, workerId, onMessageClick }: Worke
 
   const handleStartJob = async (bookingId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/bookings/${bookingId}/start`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/bookings/${bookingId}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ worker_id: workerId })
@@ -194,7 +194,7 @@ export function WorkerBookings({ statusFilter, workerId, onMessageClick }: Worke
 
   const handleCompleteJob = async (bookingId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/bookings/${bookingId}/complete`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/bookings/${bookingId}/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ worker_id: workerId })

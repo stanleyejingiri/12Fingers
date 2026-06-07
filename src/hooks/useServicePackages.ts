@@ -16,7 +16,7 @@ export const useServicePackages = (workerId: string | undefined) => {
     queryKey: ["servicePackages", workerId],
     queryFn: async () => {
       if (!workerId) return [];
-      const response = await fetch(`http://localhost:3001/api/packages/worker/${workerId}`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/packages/worker/${workerId}`);
       const data = await response.json();
       if (!data.success) throw new Error(data.error);
       return data.packages as ServicePackage[];

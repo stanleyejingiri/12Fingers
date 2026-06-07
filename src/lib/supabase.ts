@@ -1,7 +1,7 @@
 // src/lib/supabase.ts - MUST EXPORT supabase
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'http://localhost:3001';
+const supabaseUrl = 'https://one2fingers-backend.onrender.com';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
 console.log("🔧 [supabase] Configuring client with URL:", supabaseUrl);
@@ -18,7 +18,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Also export apiClient for our new backend
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://one2fingers-backend.onrender.com/api';
 
 class ApiClient {
   private baseUrl: string;
@@ -54,7 +54,7 @@ console.log("✅ Both exports available: supabase and apiClient");
 // src/lib/supabase.ts - REPLACE ENTIRE FILE WITH THIS:
 // Simple API client for your backend
 /*
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://one2fingers-backend.onrender.com/api';
 
 class ApiClient {
   private baseUrl: string;
@@ -91,7 +91,7 @@ console.log("🔧 [apiClient] Configured for backend:", API_BASE_URL);
 import { createClient } from '@supabase/supabase-js';
 
 // FORCE local PostgREST configuration
-const supabaseUrl = 'http://localhost:3001';
+const supabaseUrl = 'https://one2fingers-backend.onrender.com';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
 console.log("🔧 [supabase] Configuring client with URL:", supabaseUrl);
@@ -123,7 +123,7 @@ supabase.from('worker_profiles').select('count', { count: 'exact', head: true })
 import { createClient } from '@supabase/supabase-js';
 
 // HARDCODE PostgREST URL (port 3001)
-const supabaseUrl = 'http://localhost:3001';
+const supabaseUrl = 'https://one2fingers-backend.onrender.com';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
 
 console.log('🔌 Using PostgREST at:', supabaseUrl);

@@ -5,7 +5,7 @@ export const useConversations = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['conversations', userId],
     queryFn: async () => {
-      const res = await fetch(`http://localhost:3001/api/messages/conversations/${userId}`);
+      const res = await fetch(`https://one2fingers-backend.onrender.com/api/messages/conversations/${userId}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       return data.conversations;
@@ -14,5 +14,5 @@ export const useConversations = (userId: string | undefined) => {
   });
 	console.log('🔍 useConversations called with userId:', userId);
 	console.log('🔍 useConversations hook running, userId:', userId);
-	console.log('🔍 Fetching URL:', `http://localhost:3001/api/messages/conversations/${userId}`);
+	console.log('🔍 Fetching URL:', `https://one2fingers-backend.onrender.com/api/messages/conversations/${userId}`);
 };

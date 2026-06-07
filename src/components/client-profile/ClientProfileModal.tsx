@@ -50,7 +50,7 @@ export function ClientProfileModal({
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:3001/api/clients/${user.id}`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/clients/${user.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, phone }),

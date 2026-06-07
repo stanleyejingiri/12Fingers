@@ -22,7 +22,7 @@ export async function subscribeToPush( userId: string ) {
   });
   
   // Send subscription to backend
-  await fetch('http://localhost:3001/api/push/subscribe', {
+  await fetch('https://one2fingers-backend.onrender.com/api/push/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

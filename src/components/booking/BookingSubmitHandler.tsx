@@ -125,7 +125,7 @@ export const useBookingSubmit = ({
       // For wallet payments: Only check balance, don't deduct yet
       if (paymentMethod === 'wallet') {
         console.log('💰 Checking wallet balance (no deduction yet)...');
-        const balanceResponse = await fetch(`http://localhost:3001/api/wallets/balance/${user.id}`);
+        const balanceResponse = await fetch(`https://one2fingers-backend.onrender.com/api/wallets/balance/${user.id}`);
         
         if (!balanceResponse.ok) {
           throw new Error('Failed to check wallet balance');
@@ -149,7 +149,7 @@ export const useBookingSubmit = ({
 
       // Step 2: Create booking
       console.log('📤 Creating booking...');
-      const bookingResponse = await fetch('http://localhost:3001/api/bookings', {
+      const bookingResponse = await fetch('https://one2fingers-backend.onrender.com/api/bookings', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ export const useBookingSubmit = ({
         // For custom offers, payment should also wait for worker acceptance
         if (!isCustomOffer) {
           console.log('💳 Creating Stripe checkout for immediate payment...');
-          const checkoutResponse = await fetch('http://localhost:3001/api/create-checkout', {
+          const checkoutResponse = await fetch('https://one2fingers-backend.onrender.com/api/create-checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -265,7 +265,7 @@ export const useBookingSubmit = ({
 const createDirectWalletTransaction = async (userId: string, amount: number, bookingId: number) => {
   try {
     console.log('💸 Creating direct wallet transaction...');
-    const response = await fetch('http://localhost:3001/api/wallets/transactions', {
+    const response = await fetch('https://one2fingers-backend.onrender.com/api/wallets/transactions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

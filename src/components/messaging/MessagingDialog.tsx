@@ -148,7 +148,7 @@ export function MessagingDialog({
       if (!user?.id) return;
       
       try {
-        const response = await fetch(`http://localhost:3001/api/bookings/user/${user.id}`);
+        const response = await fetch(`https://one2fingers-backend.onrender.com/api/bookings/user/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {

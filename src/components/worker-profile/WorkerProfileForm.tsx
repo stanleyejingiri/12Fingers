@@ -65,7 +65,7 @@ export const WorkerProfileForm = ({ worker, onSuccess, onUpdate }: WorkerProfile
     try {
       console.log("🔍 Submitting worker profile data:", values);
       
-      const response = await fetch(`http://localhost:3001/api/workers/${worker.id}`, {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/workers/${worker.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -31,7 +31,7 @@ export const Header = ({
   /*const fetchUnreadCount = async () => {
     if (!user?.id) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/notifications/unread/${user.id}`);
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/notifications/unread/${user.id}`);
       const data = await response.json();
       if (data.success) {
         setUnreadCount(data.count);
@@ -49,7 +49,7 @@ export const Header = ({
 	const fetchUnreadCount = async () => {
 	  if (!user?.id) return;
 	  try {
-		const response = await fetch(`http://localhost:3001/api/notifications/unread/${user.id}`);
+		const response = await fetch(`https://one2fingers-backend.onrender.com/api/notifications/unread/${user.id}`);
 		const data = await response.json();
 		if (data.success) {
 		  const newCount = data.count;

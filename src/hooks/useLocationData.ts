@@ -15,7 +15,7 @@ export const useLocationData = (selectedCountry?: string, selectedState?: string
   const [error, setError] = useState<string | null>(null);
 
   // Base URL - use relative path for production
-  const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:3001/api';
+  const API_BASE = import.meta.env.PROD ? '/api' : 'https://one2fingers-backend.onrender.com/api';
 
   // Fetch all countries
   const fetchCountries = useCallback(async () => {
