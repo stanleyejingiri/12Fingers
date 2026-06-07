@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="512" height="512">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#2563eb" />
+  
+  <!-- Left hand (fingers + palm) -->
+  <g fill="white">
+    <!-- Thumb -->
+    <rect x="55" y="110" width="12" height="30" rx="6" transform="rotate(-25 61 125)" />
+    <!-- Index -->
+    <rect x="70" y="95" width="12" height="40" rx="6" />
+    <!-- Middle -->
+    <rect x="84" y="90" width="12" height="48" rx="6" />
+    <!-- Ring -->
+    <rect x="98" y="95" width="12" height="40" rx="6" />
+    <!-- Pinky -->
+    <rect x="112" y="105" width="12" height="30" rx="6" transform="rotate(15 118 120)" />
+    <!-- Palm -->
+    <rect x="65" y="120" width="60" height="22" rx="8" />
+  </g>
+  
+  <!-- Right hand (mirrored) -->
+  <g fill="white" transform="translate(200,0) scale(-1,1)">
+    <rect x="55" y="110" width="12" height="30" rx="6" transform="rotate(-25 61 125)" />
+    <rect x="70" y="95" width="12" height="40" rx="6" />
+    <rect x="84" y="90" width="12" height="48" rx="6" />
+    <rect x="98" y="95" width="12" height="40" rx="6" />
+    <rect x="112" y="105" width="12" height="30" rx="6" transform="rotate(15 118 120)" />
+    <rect x="65" y="120" width="60" height="22" rx="8" />
+  </g>
+  
+  <!-- Simple text below (optional) -->
+  <text x="100" y="175" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle" font-weight="bold">12FINGERS.WORK</text>
+</svg>

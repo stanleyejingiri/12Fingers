@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-[#E2E8F0];
+  }
+
+  body {
+    @apply bg-background text-foreground min-h-screen;
+  }
+
+  #root {
+    @apply min-h-screen flex flex-col;
+  }
+}

@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Backup files
+*.sql
+*.bak
+backups/
+
+# Uploads (if any)
+uploads/
+
+# Large binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Temp analysis files
+structure.txt
+structuremod.txt
+
+# Build output
+dist/
