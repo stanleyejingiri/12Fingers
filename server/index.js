@@ -25,7 +25,7 @@ import testRouter from './routes/test.js';
 import clientsRouter from './routes/clients.js';
 import verificationRouter from './routes/verification.js';
 import packagesRouter from './routes/packages.js';
-import pushRouter from './routes/push.js';
+//import pushRouter from './routes/push.js';
 
 
 // Initialize dotenv
@@ -106,7 +106,7 @@ app.use('/api/payments/', paymentLimiter); // Stricter for payments
 app.use('/api/test', testRouter);
 app.use('/api/clients', clientsRouter);
 app.use('/api/packages', packagesRouter);
-app.use('/api/push', pushRouter);
+//app.use('/api/push', pushRouter);
 
 console.log('✅ All routers loaded successfully');
 
