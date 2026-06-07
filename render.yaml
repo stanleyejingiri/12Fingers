@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: one2fingers-backend
+    runtime: node
+    rootDir: server
+    envVars:
+      - key: DB_HOST
+        value: dpg-d8ie5n8jo6nc73d6eq7g-a
+      - key: DB_PORT
+        value: 5432
+      - key: DB_NAME
+        value: twelvefingers
+      - key: DB_USER
+        value: twelvefingers_user
+      - key: DB_PASSWORD
+        value: 9UZX2s5deiRKCksDN8sxES2xJkVIsFqB
+      - key: FRONTEND_URL
+        value: https://one2fingers-frontend.onrender.com
+      - key: STRIPE_PUBLISHABLE_KEY
+        value: pk_test_51SPNunCDHuolPbxjfl27MhQJekzCmlVC3xwLJiCV3OKNEBmpgVaeYjZlyAMMBx80Tl2P04Ze4vgprqdzR7kZEzIl00tjqK9b85
+      - key: STRIPE_SECRET_KEY
+        value: sk_test_51SPNunCDHuolPbxjiYAzkU7Fl2O9biI7EgnaMjSdHN2lPO3oHHNP6NgwQIwuQdfQcfz1FUcEfIOMH9ZbABsP22Br00dVJGcl5S
