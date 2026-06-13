@@ -1,0 +1,6 @@
+/assets/*
+  Cache-Control: no-cache
+  Content-Type: text/css
+
+/*
+  Cache-Control: no-store
