@@ -1,4 +1,4 @@
-// server/routes/auth.js - COMPLETE CORRECTED VERSION
+// server/routes/auth.js - COMPLETE CORRECTED VERSION // v2 - Fixed UUID registration
 import express from 'express';
 import { pool } from '../database.js';
 import bcrypt from 'bcrypt';
@@ -7,8 +7,6 @@ import { welcomeEmail } from '../templates/emails.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
-
-/*const { v4: uuidv4 } = require('uuid');*/
 
 // LOGIN ENDPOINT - FIXED WITH BETTER DEBUGGING
 router.post('/login', async (req, res) => {
@@ -214,27 +212,6 @@ router.post('/register', async (req, res) => {
 
     if (userType === 'worker') {
       // Register as worker
-      /*[insertResult] = await pool.query(
-        `INSERT INTO worker_profiles (
-          name, contact_email, password, 
-          category, years_of_experience, hourly_rate,
-          country, state, city, description,
-          created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-        [
-          userName,
-          email,
-          hashedPassword,
-          workerData.category || 'General',
-          workerData.years_of_experience || 0,
-          workerData.hourly_rate || 0,
-          workerData.country || '',
-          workerData.state || '',
-          workerData.city || '',
-          workerData.description || ''
-        ]
-      );*/
-	  // Register as worker
 		const workerId = uuidv4();
 		[insertResult] = await pool.query(
 		  `INSERT INTO worker_profiles (
@@ -273,12 +250,6 @@ router.post('/register', async (req, res) => {
       
     } else {
       // Register as client
-      [/*insertResult] = await pool.query(
-        `INSERT INTO clients (name, email, password, phone, created_at) 
-         VALUES (?, ?, ?, ?, NOW())`,
-        [userName, email, hashedPassword, phone || null]
-      );*/
-	  // Register as client
 		const clientId = uuidv4();
 		[insertResult] = await pool.query(
 		  `INSERT INTO clients (id, name, email, password, phone, created_at)
