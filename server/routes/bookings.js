@@ -5,6 +5,8 @@ import { logAudit } from '../middleware/audit.js';
 // Push notifications removed for V1
 import { v4 as uuidv4 } from 'uuid';
 
+console.log('✅ BOOKINGS ROUTER LOADED - UUID version');
+
 const router = express.Router();
 
 // GET all bookings - BULLETPROOF VERSION
@@ -151,7 +153,7 @@ router.post('/', async (req, res) => {
 	  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	  [
 		bookingId, client_id, worker_id, package_id, booking_date, start_time, end_time,
-		service_details, special_instructions, is_custom_offer, total_amount, status,
+		service_details, special_instructions, is_custom_offer, total_amount, bookingStatus,
 		payment_method, estimated_hours
 	  ]
 	);
