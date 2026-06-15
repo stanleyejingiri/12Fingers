@@ -21,7 +21,7 @@ router.get('/balance/:userId', async (req, res) => {
       // Create wallet if it doesn't exist
 	  const walletId = uuidv4();
 		const [result] = await pool.query(
-		  'INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, 0, 'USD')',
+		  `INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, 0, 'USD')`,
 		  [walletId, userId]
 		);
 
@@ -141,13 +141,10 @@ router.post('/add-funds', async (req, res) => {
     if (wallets.length === 0) {
 		const walletId = uuidv4();
 		const [result] = await pool.query(
-		  'INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, ?, 'USD')',
+		  `INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, ?, 'USD')`,
 		  [walletId, userId, amount]
 		);
-      /*const [result] = await pool.query(
-        'INSERT INTO wallets (user_id, balance, currency) VALUES (?, ?, \'USD\')',
-        [userId, amount]
-      );*/
+      
       walletId = result.insertId;
     } else {
       walletId = wallets[0].id;
@@ -230,13 +227,9 @@ router.post('/stripe-success', async (req, res) => {
       // Create wallet if doesn't exist
 	  const walletId = uuidv4();
 		const [result] = await pool.query(
-		  'INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, ?, 'USD')',
+		  `INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, ?, 'USD')`,
 		  [walletId, userId, depositAmount]
 		);
-      /*const [result] = await connection.query(
-        'INSERT INTO wallets (user_id, balance, currency) VALUES (?, ?, \'USD\')',
-        [userId, depositAmount]
-      );*/
       walletId = result.insertId;
       newBalance = depositAmount;
     } else {
