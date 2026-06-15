@@ -211,17 +211,18 @@ router.post('/register', async (req, res) => {
     let insertResult;
 
     if (userType === 'worker') {
-      // Register as worker
+		// Register as worker
 		const workerId = uuidv4();
 		[insertResult] = await pool.query(
 		  `INSERT INTO worker_profiles (
-			id, name, contact_email, password,
+			id, user_id, name, contact_email, password,
 			category, years_of_experience, hourly_rate,
 			country, state, city, description,
 			created_at
-		  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+		  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
 		  [
-			workerId,
+			workerId,    // for id
+			workerId,    // for user_id (same as id)
 			userName,
 			email,
 			hashedPassword,
@@ -234,10 +235,8 @@ router.post('/register', async (req, res) => {
 			workerData.description || ''
 		  ]
 		);
-
       userData = {
-        /*id: insertResult.insertId,*/
-		id: workerId,
+        id: workerId,
         name: userName,
         email: email,
         category: workerData.category || 'General',
