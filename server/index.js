@@ -30,6 +30,7 @@ import packagesRouter from './routes/packages.js';
 
 // Initialize dotenv
 dotenv.config();
+
 // Run this right after dotenv.config()
 checkEnvironment(); 
 
@@ -43,27 +44,6 @@ const PORT = 3001;
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
-
-// CORS MUST come before routes
-/*
-app.use(cors({
-  origin: [
-    'http://localhost:8080', 
-    'http://127.0.0.1:8080',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'user-data',
-    'x-client-info'
-  ]
-}));*/
 
 // CORS MUST come before routes
 app.use(cors({
@@ -216,7 +196,7 @@ async function getAvailableTables(pool) {
 }
 
 // POST create booking - UPDATE THIS ENDPOINT
-app.post('/api/bookings', async (req, res) => {
+/*app.post('/api/bookings', async (req, res) => {
   console.log('📅 Booking request received:', req.body);
   
   try {
@@ -253,7 +233,7 @@ app.post('/api/bookings', async (req, res) => {
       error: error.message 
     });
   }
-});
+});*/
 
 // Local Stripe checkout endpoint
 app.post('/api/create-checkout', async (req, res) => {
@@ -399,6 +379,7 @@ app.get('/api/verify-payment', async (req, res) => {
   }
 });
 
+app.set('trust proxy', 1);
 
 // Stripe Connect endpoint 
 app.post('/api/create-connect-account', async (req, res) => {
