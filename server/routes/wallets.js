@@ -1,6 +1,7 @@
 // server/routes/wallets.js
 import express from 'express';
 import { pool } from '../database.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 
@@ -18,10 +19,12 @@ router.get('/balance/:userId', async (req, res) => {
     
     if (wallets.length === 0) {
       // Create wallet if it doesn't exist
-      const [result] = await pool.query(
-        'INSERT INTO wallets (user_id, balance, currency) VALUES (?, 0, \'USD\')',
-        [userId]
-      );
+	  const walletId = uuidv4();
+		const [result] = await pool.query(
+		  'INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, 0, 'USD')',
+		  [walletId, userId]
+		);
+
       
       return res.json({
         success: true,
@@ -136,10 +139,15 @@ router.post('/add-funds', async (req, res) => {
     let walletId;
     
     if (wallets.length === 0) {
-      const [result] = await pool.query(
+		const walletId = uuidv4();
+		const [result] = await pool.query(
+		  'INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, ?, 'USD')',
+		  [walletId, userId, amount]
+		);
+      /*const [result] = await pool.query(
         'INSERT INTO wallets (user_id, balance, currency) VALUES (?, ?, \'USD\')',
         [userId, amount]
-      );
+      );*/
       walletId = result.insertId;
     } else {
       walletId = wallets[0].id;
@@ -220,10 +228,15 @@ router.post('/stripe-success', async (req, res) => {
     
     if (wallets.length === 0) {
       // Create wallet if doesn't exist
-      const [result] = await connection.query(
+	  const walletId = uuidv4();
+		const [result] = await pool.query(
+		  'INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, ?, 'USD')',
+		  [walletId, userId, depositAmount]
+		);
+      /*const [result] = await connection.query(
         'INSERT INTO wallets (user_id, balance, currency) VALUES (?, ?, \'USD\')',
         [userId, depositAmount]
-      );
+      );*/
       walletId = result.insertId;
       newBalance = depositAmount;
     } else {
