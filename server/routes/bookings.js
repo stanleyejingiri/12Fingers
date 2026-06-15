@@ -156,7 +156,6 @@ router.post('/', async (req, res) => {
 	  ]
 	);
 		
-	const bookingId = result.insertId;
 	console.log('✅ Database insert successful, ID:', bookingId);
 
 	// Push notification removed for V1
