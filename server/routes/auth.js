@@ -4,10 +4,11 @@ import { pool } from '../database.js';
 import bcrypt from 'bcrypt';
 import sendEmail from '../config/email.js';
 import { welcomeEmail } from '../templates/emails.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 
-const { v4: uuidv4 } = require('uuid');
+/*const { v4: uuidv4 } = require('uuid');*/
 
 // LOGIN ENDPOINT - FIXED WITH BETTER DEBUGGING
 router.post('/login', async (req, res) => {
