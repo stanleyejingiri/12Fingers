@@ -251,6 +251,7 @@ router.get('/check-payment/:sessionId', async (req, res) => {
 		  let newBalance;
 		  
 		  if (wallets.length > 0) {
+			// Existing wallet - update it
 			walletId = wallets[0].id;
 			newBalance = parseFloat(wallets[0].balance) + parseFloat(amount);
 			
@@ -259,7 +260,7 @@ router.get('/check-payment/:sessionId', async (req, res) => {
 			  [newBalance, walletId]
 			);
 		  } else {
-			// Create wallet if it doesn't exist - with UUID fix
+			// 🔴 NEW: Create wallet if it doesn't exist - ADD UUID HERE
 			walletId = uuidv4();
 			newBalance = parseFloat(amount);
 			
@@ -267,8 +268,11 @@ router.get('/check-payment/:sessionId', async (req, res) => {
 			  'INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, ?, "USD")',
 			  [walletId, userId, newBalance]
 			);
+			
+			console.log(`🆕 New wallet created for user ${userId} with ID ${walletId}`);
 		  }
 		  
+		  // 🔴 MOVE THIS OUTSIDE the if/else - it should run for both cases
 		  await connection.query(
 			`INSERT INTO wallet_transactions 
 			 (wallet_id, type, amount, description)
