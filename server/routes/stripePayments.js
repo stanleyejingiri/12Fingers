@@ -342,4 +342,97 @@ router.get('/check-payment/:sessionId', async (req, res) => {
   }
 });
 
+// 4. Stripe webhook for payment confirmation (MOST RELIABLE)
+router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    console.error('❌ Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const userId = session.metadata.userId;
+    const amount = session.metadata.amount;
+    const type = session.metadata.type;
+
+    console.log(`💰 Webhook: Payment successful for user ${userId}, amount $${amount}`);
+
+    try {
+      const connection = await pool.getConnection();
+      await connection.beginTransaction();
+
+      // Check if already processed
+      const [existing] = await connection.query(
+        'SELECT status FROM stripe_payment_intents WHERE payment_intent_id = ?',
+        [session.id]
+      );
+
+      if (existing.length > 0 && existing[0].status === 'completed') {
+        await connection.rollback();
+        connection.release();
+        return res.json({ received: true, alreadyProcessed: true });
+      }
+
+      // Update payment status
+      await connection.query(
+        'UPDATE stripe_payment_intents SET status = ? WHERE payment_intent_id = ?',
+        ['completed', session.id]
+      );
+
+      // Handle deposit
+      if (type === 'deposit') {
+        const walletId = uuidv4();
+        const [wallets] = await connection.query(
+          'SELECT id, balance FROM wallets WHERE user_id = ?',
+          [userId]
+        );
+
+        let walletIdToUse;
+        let newBalance;
+
+        if (wallets.length > 0) {
+          walletIdToUse = wallets[0].id;
+          newBalance = parseFloat(wallets[0].balance) + parseFloat(amount);
+          await connection.query(
+            'UPDATE wallets SET balance = ? WHERE id = ?',
+            [newBalance, walletIdToUse]
+          );
+        } else {
+          walletIdToUse = walletId;
+          newBalance = parseFloat(amount);
+          await connection.query(
+            'INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, ?, "USD")',
+            [walletIdToUse, userId, newBalance]
+          );
+        }
+
+        await connection.query(
+          `INSERT INTO wallet_transactions 
+           (wallet_id, type, amount, description)
+           VALUES (?, 'deposit', ?, 'Stripe deposit via webhook')`,
+          [walletIdToUse, amount]
+        );
+
+        console.log(`✅ Webhook: Wallet updated for user ${userId} +$${amount}`);
+      }
+
+      await connection.commit();
+      connection.release();
+
+    } catch (dbError) {
+      console.error('❌ Webhook DB error:', dbError);
+      return res.status(500).json({ error: 'Database error' });
+    }
+  }
+
+  res.json({ received: true });
+});
+
 export default router;
