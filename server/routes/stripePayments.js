@@ -2,6 +2,7 @@
 import express from 'express';
 import Stripe from 'stripe';
 import { pool } from '../database.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -240,31 +241,43 @@ router.get('/check-payment/:sessionId', async (req, res) => {
         
         // Handle different payment types
         if (type === 'deposit') {
-          // Update wallet balance for deposit
-          const [wallets] = await connection.query(
-            'SELECT id, balance FROM wallets WHERE user_id = ?',
-            [userId]
-          );
-          
-          if (wallets.length > 0) {
-            const wallet = wallets[0];
-            const newBalance = parseFloat(wallet.balance) + parseFloat(amount);
-            
-            await connection.query(
-              'UPDATE wallets SET balance = ? WHERE id = ?',
-              [newBalance, wallet.id]
-            );
-            
-            await connection.query(
-              `INSERT INTO wallet_transactions 
-               (wallet_id, type, amount, description)
-               VALUES (?, 'deposit', ?, 'Stripe deposit')`,
-              [wallet.id, amount]
-            );
-            
-            console.log(`✅ Wallet updated: User ${userId} +$${amount}`);
-          }
-        } else if (type === 'booking' && bookingId) {
+		  // Update wallet balance for deposit
+		  const [wallets] = await connection.query(
+			'SELECT id, balance FROM wallets WHERE user_id = ?',
+			[userId]
+		  );
+		  
+		  let walletId;
+		  let newBalance;
+		  
+		  if (wallets.length > 0) {
+			walletId = wallets[0].id;
+			newBalance = parseFloat(wallets[0].balance) + parseFloat(amount);
+			
+			await connection.query(
+			  'UPDATE wallets SET balance = ? WHERE id = ?',
+			  [newBalance, walletId]
+			);
+		  } else {
+			// Create wallet if it doesn't exist - with UUID fix
+			walletId = uuidv4();
+			newBalance = parseFloat(amount);
+			
+			await connection.query(
+			  'INSERT INTO wallets (id, user_id, balance, currency) VALUES (?, ?, ?, "USD")',
+			  [walletId, userId, newBalance]
+			);
+		  }
+		  
+		  await connection.query(
+			`INSERT INTO wallet_transactions 
+			 (wallet_id, type, amount, description)
+			 VALUES (?, 'deposit', ?, 'Stripe deposit')`,
+			[walletId, amount]
+		  );
+		  
+		  console.log(`✅ Wallet updated: User ${userId} +$${amount}`);
+		} else if (type === 'booking' && bookingId) {
           // 🔴 NEW: Create escrow payment record for booking
           const [existingPayment] = await connection.query(
             'SELECT id FROM payments WHERE booking_id = ?',
