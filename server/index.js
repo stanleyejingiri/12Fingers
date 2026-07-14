@@ -36,6 +36,9 @@ checkEnvironment();
 
 const app = express();
 
+// ✅ WEBHOOK MUST COME FIRST - before any body parsing middleware
+app.use('/api/stripe/stripe-webhook', express.raw({ type: 'application/json' }));
+
 // Initialize port
 //const PORT = process.env.PORT || 3001;
 const PORT = 3001;
