@@ -89,10 +89,12 @@ router.post('/create-deposit-session', async (req, res) => {
     console.error('❌ Create deposit session error:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+	  error: 'Payment processing failed. Please try again.'  // ✅ Generic error message
+      //error: error.message
     });
   }
 });
+
 
 // 2. Create booking payment checkout session (NEW)
 router.post('/create-booking-session', async (req, res) => {
@@ -178,7 +180,8 @@ router.post('/create-booking-session', async (req, res) => {
     console.error('❌ Create booking session error:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      //error: error.message
+	  error: 'Booking failed. Please try again.'  // ✅ Generic error message
     });
   }
 });
@@ -337,7 +340,8 @@ router.get('/check-payment/:sessionId', async (req, res) => {
     console.error('❌ Check payment error:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      //error: error.message
+	  error: 'Payment processing failed. Please try again.'  // ✅ Generic error message
     });
   }
 });
@@ -427,10 +431,12 @@ router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async 
       connection.release();
 
     } catch (dbError) {
-      console.error('❌ Webhook DB error:', dbError);
-      return res.status(500).json({ error: 'Database error' });
-    }
-  }
+		console.error('❌ Webhook DB error:', dbError);
+		return res.status(500).json({ 
+		success: false,
+		error: 'Payment processing failed. Please try again.' 
+	}
+ }
 
   res.json({ received: true });
 });
