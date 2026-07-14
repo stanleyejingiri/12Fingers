@@ -431,12 +431,12 @@ router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async 
       connection.release();
 
     } catch (dbError) {
-		console.error('❌ Webhook DB error:', dbError);
-		return res.status(500).json({ 
-		success: false,
-		error: 'Payment processing failed. Please try again.' 
-	}
- }
+	console.error('❌ Webhook DB error:', dbError);
+	return res.status(500).json({ 
+    success: false,
+    error: 'Payment processing failed. Please try again.' 
+  });
+}
 
   res.json({ received: true });
 });
