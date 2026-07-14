@@ -1,4 +1,5 @@
 // server/index.js 
+app.use('/api/stripe', stripePaymentsRouter);
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -194,46 +195,6 @@ async function getAvailableTables(pool) {
     return ['Cannot fetch tables'];
   }
 }
-
-// POST create booking - UPDATE THIS ENDPOINT
-/*app.post('/api/bookings', async (req, res) => {
-  console.log('📅 Booking request received:', req.body);
-  
-  try {
-    const connection = await pool.getConnection();
-    
-    const [result] = await connection.query(
-      `INSERT INTO bookings 
-        (client_id, worker_id, booking_date, start_time, end_time, 
-         estimated_hours, total_amount, status, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
-      [
-        req.body.client_id,
-        req.body.worker_id,
-        req.body.booking_date,
-        req.body.start_time,
-        req.body.end_time,
-        req.body.estimated_hours || 2,
-        req.body.total_amount || 0,
-      ]
-    );
-    
-    connection.release();
-    
-    res.json({ 
-      success: true, 
-      booking_id: result.insertId, // ACTUAL DATABASE ID
-      message: 'Booking created successfully'
-    });
-    
-  } catch (error) {
-    console.error('❌ Booking creation error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});*/
 
 // Local Stripe checkout endpoint
 app.post('/api/create-checkout', async (req, res) => {
