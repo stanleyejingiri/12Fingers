@@ -1,5 +1,4 @@
 // server/index.js 
-app.use('/api/stripe', stripePaymentsRouter);
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -116,12 +115,10 @@ console.log('✅ All routers loaded successfully');
 
 //const notificationsRouter = require('./routes/notifications');
 app.use('/api/notifications', notificationsRouter);
-
 // Existing health endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
-
 app.get('/api/workers', async (req, res) => {
   try {
     console.log('📋 Attempting to fetch workers with packages...');
