@@ -69,7 +69,13 @@ router.post('/create-deposit-session', async (req, res) => {
         amount: amount.toString()
       }
     });
-    
+    console.log('🔗 Full session details:', {
+	  id: session.id,
+	  url: session.url,
+	  status: session.status,
+	  expires_at: session.expires_at
+	});
+	
     await pool.query(
       `INSERT INTO stripe_payment_intents 
        (payment_intent_id, user_id, amount, status, metadata)
