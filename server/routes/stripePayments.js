@@ -190,7 +190,7 @@ router.post('/create-booking-session', async (req, res) => {
 });
 
 // 3. Check payment status (handles both deposit and booking)
-router.get('/check-payment/:sessionId', async (req, res) => {
+/*router.get('/check-payment/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
     
@@ -334,7 +334,37 @@ router.get('/check-payment/:sessionId', async (req, res) => {
       error: 'Payment processing failed. Please try again.'
     });
   }
+});*/
+// 3. Check payment status (read-only, webhook handles updates)
+router.get('/check-payment/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    console.log('🔍 Checking payment status for session:', sessionId);
+    
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    
+    console.log('📊 Session status:', session.payment_status);
+    
+    res.json({
+      success: true,
+      paid: session.payment_status === 'paid',
+      payment_status: session.payment_status,
+      amount: session.metadata.amount,
+      type: session.metadata.type,
+      message: session.payment_status === 'paid' ? 'Payment successful' : 'Payment not yet completed'
+    });
+    
+  } catch (error) {
+    console.error('❌ Check payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check payment status'
+    });
+  }
 });
+
+
 
 // 4. Stripe webhook for payment confirmation
 router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
