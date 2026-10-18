@@ -67,6 +67,13 @@ router.post('/create-deposit-session', async (req, res) => {
         userId,
         type: 'deposit',
         amount: amount.toString()
+      },
+	  payment_intent_data: {
+        metadata: {
+          userId,
+          type: 'deposit',
+          amount: amount.toString()
+        }
       }
     });
     console.log('🔗 Full session details:', {
@@ -162,7 +169,17 @@ router.post('/create-booking-session', async (req, res) => {
         workerId: workerId,
         type: 'booking',
         amount: amount.toString()
-      }
+      },
+	  payment_intent_data: {
+        metadata: {
+          userId: clientId,
+          bookingId: bookingId,
+          workerId: workerId,
+          type: 'booking',
+          amount: amount.toString()
+        }
+	  }
+	  
     });
     
     await pool.query(
