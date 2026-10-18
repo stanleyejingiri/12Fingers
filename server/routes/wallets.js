@@ -131,13 +131,18 @@ router.post('/add-funds', async (req, res) => {
         [newBalance, walletId]
       );
     }
-
-    await pool.query(
+	await pool.query(
+		`INSERT INTO wallet_transactions 
+		(id, wallet_id, type, amount, description, created_at)
+		VALUES (?, ?, 'credit', ?, 'Manual fund addition', NOW())`,
+		[uuidv4(), walletId, amount]
+	);
+    /*await pool.query(
       `INSERT INTO wallet_transactions 
         (wallet_id, type, amount, description, created_at)
       VALUES (?, 'credit', ?, 'Manual fund addition', NOW())`,
       [walletId, amount]
-    );
+    );*/
 
     const [updatedWallet] = await pool.query(
       'SELECT balance FROM wallets WHERE id = ?',
@@ -209,12 +214,18 @@ router.post('/stripe-success', async (req, res) => {
       );
     }
 
-    await connection.query(
+    /*await connection.query(
       `INSERT INTO wallet_transactions 
        (wallet_id, type, amount, description, created_at)
        VALUES (?, 'deposit', ?, ?, NOW())`,
       [walletId, depositAmount, `Stripe deposit: ${sessionId}`]
-    );
+    );*/
+	await connection.query(
+		`INSERT INTO wallet_transactions 
+		(id, wallet_id, type, amount, description, created_at)
+		VALUES (?, ?, 'deposit', ?, ?, NOW())`,
+		[uuidv4(), walletId, depositAmount, `Stripe deposit: ${sessionId}`]
+	);
 
     await connection.commit();
 

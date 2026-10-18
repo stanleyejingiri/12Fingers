@@ -210,34 +210,6 @@ router.post('/create-booking-session', async (req, res) => {
   }
 });
 
-// 3. Check payment status (read-only, webhook handles updates)
-/*router.get('/check-payment/:sessionId', async (req, res) => {
-  try {
-    const { sessionId } = req.params;
-    
-    console.log('🔍 Checking payment status for session:', sessionId);
-    
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    
-    console.log('📊 Session status:', session.payment_status);
-    
-    res.json({
-      success: true,
-      paid: session.payment_status === 'paid',
-      payment_status: session.payment_status,
-      amount: session.metadata.amount,
-      type: session.metadata.type,
-      message: session.payment_status === 'paid' ? 'Payment successful' : 'Payment not yet completed'
-    });
-    
-  } catch (error) {
-    console.error('❌ Check payment error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to check payment status'
-    });
-  }
-});*/
 // 3. Check payment status AND update wallet (fallback for unreliable webhooks)
 router.get('/check-payment/:sessionId', async (req, res) => {
   try {
@@ -310,9 +282,9 @@ router.get('/check-payment/:sessionId', async (req, res) => {
 
         await connection.query(
           `INSERT INTO wallet_transactions 
-           (wallet_id, type, amount, description)
-           VALUES (?, 'deposit', ?, 'Stripe deposit via check-payment fallback')`,
-          [walletIdToUse, amount]
+           (id, wallet_id, type, amount, description)
+           VALUES (?, ?, 'deposit', ?, 'Stripe deposit via check-payment fallback')`,
+          [uuidv4(), walletIdToUse, amount]
         );
 
         console.log(`✅ Check-payment: Wallet updated for user ${userId} +$${amount}`);
@@ -333,7 +305,6 @@ router.get('/check-payment/:sessionId', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to check payment status' });
   }
 });
-
 
 // 4. Stripe webhook for payment confirmation
 router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -422,9 +393,9 @@ router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async 
 
         await connection.query(
           `INSERT INTO wallet_transactions 
-           (wallet_id, type, amount, description)
-           VALUES (?, 'deposit', ?, 'Stripe deposit via webhook')`,
-          [walletIdToUse, amount]
+           (id, wallet_id, type, amount, description)
+           VALUES (?, ?, 'deposit', ?, 'Stripe deposit via webhook')`,
+          [uuidv4(), walletIdToUse, amount]
         );
       }
 
