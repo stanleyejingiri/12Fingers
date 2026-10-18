@@ -375,13 +375,19 @@ router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async 
           'UPDATE wallets SET balance = ? WHERE id = ?',
           [newBalance, walletIdToUse]
         );
-
-        await connection.query(
+		
+		await connection.query(
+		  `INSERT INTO wallet_transactions 
+		   (id, wallet_id, type, amount, description)
+		   VALUES (?, ?, 'deposit', ?, 'Stripe deposit via webhook')`,
+		  [uuidv4(), walletIdToUse, amount]
+		);
+        /*await connection.query(
           `INSERT INTO wallet_transactions 
            (wallet_id, type, amount, description)
            VALUES (?, 'deposit', ?, 'Stripe deposit via webhook')`,
           [walletIdToUse, amount]
-        );
+        );*/
       } else {
         const walletIdToUse = uuidv4();
         const newBalance = parseFloat(amount);
