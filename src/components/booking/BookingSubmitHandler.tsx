@@ -13,7 +13,7 @@ interface BookingSubmitProps {
 }
 
 // Helper function to calculate booking details
-const calculateBookingDetails = (
+/*const calculateBookingDetails = (
   data: BookingFormData,
   selectedPackage: any,
   hourlyRate: number
@@ -58,6 +58,47 @@ const calculateBookingDetails = (
     totalHours,
     totalAmount,
     depositAmount: totalAmount * 0.5 // 50% deposit for non-wallet payments
+  };
+};
+*/
+const calculateBookingDetails = (
+  data: BookingFormData,
+  selectedPackage: any,
+  hourlyRate: number
+) => {
+  const calculateHours = (startTime: string, endTime: string) => {
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+    let totalMinutes = endMinutes - startMinutes;
+    if (totalMinutes < 0) totalMinutes += 24 * 60;
+    return totalMinutes / 60;
+  };
+
+  const totalHours = data.estimatedHours || calculateHours(data.startTime, data.endTime);
+
+  let totalAmount = 0;
+
+  if (selectedPackage && selectedPackage.id !== 'custom') {
+    // Package booking — use the package price
+    totalAmount = selectedPackage.price || 0;
+  } else {
+    // Custom offer — the client's entered price is authoritative
+    if (data.customPrice && data.customPrice > 0) {
+      totalAmount = data.customPrice;
+    } else if (data.totalAmount && data.totalAmount > 0) {
+      totalAmount = data.totalAmount;
+    } else {
+      // Last resort: hourly rate fallback
+      totalAmount = totalHours * hourlyRate;
+    }
+  }
+
+  return {
+    totalHours,
+    totalAmount,
+    depositAmount: totalAmount * 0.5
   };
 };
 

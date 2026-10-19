@@ -1,28 +1,4 @@
-//src/types/bookings.ts
-/*export type BookingStatus = 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
-export interface BookingFormData {
-  date: Date;
-  startTime: string;
-  endTime: string;
-  serviceDetails?: string;          // Added for custom requests
-  packageId?: string;               // Added for package bookings
-  isCustomOffer?: boolean;          // Added to distinguish offer types
-  specialRequests?: string;         // Alternative name if preferred
-}
-export interface Booking {
-  id: string;
-  worker_id: string;
-  client_id: string;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  status: BookingStatus;
-  total_amount: number;
-  created_at: string;
-  service_details?: string;         // Match backend if applicable
-  package_id?: string;              // Match backend if applicable
-  is_custom_offer?: boolean;        // Match backend if applicable
-}*/
+
 // src/types/bookings.ts
 export type BookingStatus = 
   | 'pending' 
@@ -46,6 +22,7 @@ export interface BookingFormData {
   // Add estimated hours and total amount for custom offers
   estimatedHours?: number;
   totalAmount?: number;
+  customPrice?: number;    // NEW
 }
 
 export interface Booking {
