@@ -96,6 +96,7 @@ router.post('/', async (req, res) => {
     console.log(`💰 Payment method received: ${payment_method}`);
     console.log(`📝 Is custom offer: ${is_custom_offer}`);
 
+    // 🔴 CHANGED: Use final_package_id (computed below) in the INSERT instead of raw package_id
     const final_package_id = (is_custom_offer || package_id === 'custom') ? null : package_id;
     
     const validationErrors = [];
@@ -133,7 +134,19 @@ router.post('/', async (req, res) => {
 
     console.log('✅ Worker verified:', workers[0].name);
 
-    const final_amount = total_amount > 0 ? total_amount : (is_custom_offer ? custom_price : 100.00);
+    // 🔴 CHANGED: Hardened fallback chain — handles undefined/null/0/string values safely
+    const numericTotal = parseFloat(total_amount) || 0;
+    const numericCustom = parseFloat(custom_price) || 0;
+    const final_amount = numericTotal > 0
+      ? numericTotal
+      : (is_custom_offer && numericCustom > 0 ? numericCustom : (is_custom_offer ? 0 : 100.00));
+
+    console.log('💰 Amount calculation:', {
+      total_amount_received: total_amount,
+      custom_price_received: custom_price,
+      is_custom_offer,
+      final_amount
+    });
     
     let bookingStatus;
     if (is_custom_offer) {
@@ -152,8 +165,12 @@ router.post('/', async (req, res) => {
 		payment_method, estimated_hours
 	  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	  [
-		bookingId, client_id, worker_id, package_id, booking_date, start_time, end_time,
-		service_details, special_instructions, is_custom_offer, total_amount, bookingStatus,
+		bookingId, client_id, worker_id,
+		final_package_id,           // 🔴 CHANGED: was package_id
+		booking_date, start_time, end_time,
+		service_details, special_instructions, is_custom_offer,
+		final_amount,               // 🔴 CHANGED: was total_amount
+		bookingStatus,
 		payment_method, estimated_hours
 	  ]
 	);
@@ -268,6 +285,15 @@ router.post('/:id/accept', async (req, res) => {
       oldValues: oldBooking[0],
       newValues: newBooking[0],
       req
+    });
+    
+    // 🔴 CHANGED: Send a response! (Previously this endpoint hung — no res.json())
+    console.log(`✅ Offer #${id} accepted by worker ${booking.worker_name}`);
+    res.json({
+      success: true,
+      booking_id: id,
+      message: 'Offer accepted successfully. Waiting for client payment.',
+      status: 'offer_accepted'
     });
     
   } catch (error) {
@@ -940,3 +966,4 @@ router.get('/:id', async (req, res) => {
 });
 
 export default router;
+
