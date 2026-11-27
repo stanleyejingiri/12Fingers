@@ -90,6 +90,11 @@ try {
   console.error('❌ Database connection error:', err);
 }  
 
+// 1. Move rate limiters BEFORE route mounts:
+app.use('/api/', apiLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/payments/', paymentLimiter);
+
 // Mount routers
 app.use('/api/auth', authRouter);
 app.use('/api/bookings', bookingsRouter);
@@ -106,10 +111,10 @@ app.use('/api/withdrawals', withdrawalsRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/verification', verificationRouter);
 app.use('/uploads', express.static('uploads'));
-app.use('/api/', apiLimiter); // Apply to all API routes
-app.use('/api/auth/login', authLimiter); // Stricter for login
-app.use('/api/payments/', paymentLimiter); // Stricter for payments
-app.use('/api/test', testRouter);
+//app.use('/api/', apiLimiter); // Apply to all API routes
+//app.use('/api/auth/login', authLimiter); // Stricter for login
+//app.use('/api/payments/', paymentLimiter); // Stricter for payments
+//app.use('/api/test', testRouter);
 app.use('/api/clients', clientsRouter);
 app.use('/api/packages', packagesRouter);
 //app.use('/api/push', pushRouter);

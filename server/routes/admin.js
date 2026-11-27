@@ -1,4 +1,285 @@
 // server/routes/admin.js
+import express from 'express';
+import { pool } from '../database.js';
+import { logAudit } from '../middleware/audit.js';
+import { requireAdmin } from '../middleware/requireAdmin.js';
+import sendEmail from '../config/email.js';
+import { withdrawalStatusEmail } from '../templates/emails.js';
+
+const router = express.Router();
+
+// Public check endpoint — frontend uses this to know if the current user is admin
+// Does NOT require auth middleware (the userId is looked up and the response tells them)
+router.get('/check/:userId', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT is_admin FROM clients WHERE id = ?',
+      [req.params.userId]
+    );
+    res.json({ success: true, is_admin: rows[0]?.is_admin === 1 });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// All routes below require admin auth
+router.use(requireAdmin);
+
+// GET all users (clients)
+router.get('/users', async (req, res) => {
+  try {
+    console.log('📥 GET /api/admin/users');
+    
+    const [users] = await pool.query(`
+      SELECT 
+        c.id,
+        c.name,
+        c.email,
+        c.phone,
+        c.created_at,
+        c.status,
+        c.suspension_reason,
+        c.suspended_at,
+        COALESCE(w.balance, 0) as wallet_balance,
+        (SELECT COUNT(*) FROM bookings WHERE client_id = c.id AND deleted_at IS NULL) as total_bookings,
+        (SELECT COUNT(*) FROM bookings WHERE client_id = c.id AND status = 'completed' AND deleted_at IS NULL) as completed_bookings
+      FROM clients c
+      LEFT JOIN wallets w ON c.id = w.user_id
+      WHERE c.deleted_at IS NULL
+      ORDER BY c.created_at DESC
+    `);
+    
+    res.json({ success: true, users: users || [] });
+  } catch (error) {
+    console.error('❌ Error fetching users:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET all workers
+router.get('/workers', async (req, res) => {
+  try {
+    console.log('📥 GET /api/admin/workers');
+    
+    const [workers] = await pool.query(`
+      SELECT 
+        wp.id,
+        wp.name,
+        wp.category,
+        wp.is_verified,
+        wp.stripe_connected,
+        wp.created_at,
+        wp.status,
+        wp.suspension_reason,
+        wp.suspended_at,
+        COALESCE(w.balance, 0) as wallet_balance,
+        (SELECT COUNT(*) FROM bookings WHERE worker_id = wp.id) as total_jobs,
+        (SELECT COUNT(*) FROM bookings WHERE worker_id = wp.id AND status = 'completed') as completed_jobs,
+        (SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE worker_id = wp.id AND status = 'completed') as total_earnings
+      FROM worker_profiles wp
+      LEFT JOIN wallets w ON wp.id = w.user_id
+      ORDER BY wp.created_at DESC
+    `);
+    
+    res.json({ success: true, workers: workers || [] });
+  } catch (error) {
+    console.error('❌ Error fetching workers:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET platform statistics
+router.get('/stats', async (req, res) => {
+  try {
+    const [userCount] = await pool.query('SELECT COUNT(*) as count FROM clients');
+    const [workerCount] = await pool.query('SELECT COUNT(*) as count FROM worker_profiles');
+    const [bookingStats] = await pool.query(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+        SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
+        SUM(CASE WHEN status = 'pending' OR status = 'offer_pending' THEN 1 ELSE 0 END) as pending
+      FROM bookings
+    `);
+    const [revenue] = await pool.query(`
+      SELECT COALESCE(SUM(amount), 0) as total_commission
+      FROM wallet_transactions
+      WHERE type = 'commission'
+    `);
+    const [pendingWithdrawals] = await pool.query(`
+      SELECT COUNT(*) as count FROM withdrawals WHERE status = 'pending'
+    `);
+    
+    const stats = {
+      total_users: userCount[0].count || 0,
+      total_workers: workerCount[0].count || 0,
+      total_bookings: bookingStats[0]?.total || 0,
+      completed_bookings: bookingStats[0]?.completed || 0,
+      in_progress_bookings: bookingStats[0]?.in_progress || 0,
+      pending_bookings: bookingStats[0]?.pending || 0,
+      total_commission: parseFloat(revenue[0]?.total_commission || 0),
+      pending_withdrawals: pendingWithdrawals[0]?.count || 0
+    };
+    
+    res.json({ success: true, stats });
+  } catch (error) {
+    console.error('❌ Error fetching stats:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// SUSPEND USER
+router.post('/users/:userId/suspend', async (req, res) => {
+  const { userId } = req.params;
+  const { reason } = req.body;
+  const adminId = req.admin.id;
+  
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [users] = await connection.query('SELECT name, email FROM clients WHERE id = ?', [userId]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    const user = users[0];
+    await connection.query(
+      `UPDATE clients SET status = 'suspended', suspension_reason = ?, suspended_at = NOW(), suspended_by = ? WHERE id = ?`,
+      [reason || 'No reason provided', adminId, userId]
+    );
+    
+    await logAudit({
+      userId: adminId, action: 'SUSPEND_USER', entityType: 'client', entityId: userId,
+      newValues: { status: 'suspended', reason, suspended_by: adminId }, req
+    });
+    
+    res.json({
+      success: true,
+      message: `User ${user.name} has been suspended.`,
+      user: { id: userId, name: user.name, email: user.email, status: 'suspended' }
+    });
+  } catch (error) {
+    console.error('❌ Suspend user error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
+// UNSUSPEND USER
+router.post('/users/:userId/unsuspend', async (req, res) => {
+  const { userId } = req.params;
+  const adminId = req.admin.id;
+  
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [users] = await connection.query('SELECT name, email FROM clients WHERE id = ?', [userId]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    const user = users[0];
+    await connection.query(
+      `UPDATE clients SET status = 'active', suspension_reason = NULL, suspended_at = NULL, suspended_by = NULL WHERE id = ?`,
+      [userId]
+    );
+    
+    await logAudit({
+      userId: adminId, action: 'UNSUSPEND_USER', entityType: 'client', entityId: userId,
+      newValues: { status: 'active' }, req
+    });
+    
+    res.json({ success: true, message: `User ${user.name} has been reactivated.` });
+  } catch (error) {
+    console.error('❌ Unsuspend user error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
+// SUSPEND WORKER
+router.post('/workers/:workerId/suspend', async (req, res) => {
+  const { workerId } = req.params;
+  const { reason } = req.body;
+  const adminId = req.admin.id;
+  
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [workers] = await connection.query('SELECT name FROM worker_profiles WHERE id = ?', [workerId]);
+    
+    if (workers.length === 0) {
+      return res.status(404).json({ success: false, error: 'Worker not found' });
+    }
+    
+    const worker = workers[0];
+    await connection.query(
+      `UPDATE worker_profiles SET status = 'suspended', suspension_reason = ?, suspended_at = NOW(), suspended_by = ? WHERE id = ?`,
+      [reason || 'No reason provided', adminId, workerId]
+    );
+    
+    await logAudit({
+      userId: adminId, action: 'SUSPEND_WORKER', entityType: 'worker', entityId: workerId,
+      newValues: { status: 'suspended', reason, suspended_by: adminId }, req
+    });
+    
+    res.json({ success: true, message: `Worker ${worker.name} has been suspended.` });
+  } catch (error) {
+    console.error('❌ Suspend worker error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
+// UNSUSPEND WORKER
+router.post('/workers/:workerId/unsuspend', async (req, res) => {
+  const { workerId } = req.params;
+  const adminId = req.admin.id;
+  
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [workers] = await connection.query('SELECT name FROM worker_profiles WHERE id = ?', [workerId]);
+    
+    if (workers.length === 0) {
+      return res.status(404).json({ success: false, error: 'Worker not found' });
+    }
+    
+    const worker = workers[0];
+    await connection.query(
+      `UPDATE worker_profiles SET status = 'active', suspension_reason = NULL, suspended_at = NULL, suspended_by = NULL WHERE id = ?`,
+      [workerId]
+    );
+    
+    await logAudit({
+      userId: adminId, action: 'UNSUSPEND_WORKER', entityType: 'worker', entityId: workerId,
+      newValues: { status: 'active' }, req
+    });
+    
+    res.json({ success: true, message: `Worker ${worker.name} has been reactivated.` });
+  } catch (error) {
+    console.error('❌ Unsuspend worker error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
+// NOTE: The /withdrawals/:id/process endpoint that was here has been REMOVED.
+// Reason: it duplicated withdrawals.js's /process/:id but did NOT call Stripe.
+// The correct endpoint is POST /api/withdrawals/process/:withdrawalId in withdrawals.js.
+
+export default router;
+
+
+
+
+// server/routes/admin.js
 /*
 import { pool } from '../database.js';
 import { logAudit } from '../middleware/audit.js';  // 🔴 ADD THIS LINE
@@ -399,6 +680,7 @@ router.post('/workers/:workerId/unsuspend', async (req, res) => {
 export default router;*/
 
 // server/routes/admin.js
+/*
 import express from 'express';
 import { pool } from '../database.js';
 import { logAudit } from '../middleware/audit.js';
@@ -926,4 +1208,4 @@ router.post('/withdrawals/:withdrawalId/process', async (req, res) => {
   }
 });
 
-export default router;
+export default router;*/

@@ -2,6 +2,18 @@
 import express from 'express';
 import { pool } from '../database.js';
 import Stripe from 'stripe';
+// Add this import at the top:
+import { requireAdmin } from '../middleware/requireAdmin.js';
+
+// Change the /process route definition:
+router.post('/process/:withdrawalId', requireAdmin, async (req, res) => {
+  // ... rest of existing handler unchanged
+});
+
+// Change the /pending route definition:
+router.get('/pending', requireAdmin, async (req, res) => {
+  // ... rest of existing handler unchanged
+});
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);

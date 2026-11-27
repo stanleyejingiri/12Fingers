@@ -4,6 +4,7 @@ import { pool } from '../database.js';
 import { logAudit } from '../middleware/audit.js';
 // Push notifications removed for V1
 import { v4 as uuidv4 } from 'uuid';
+import { requireAuth, requireSelf } from '../middleware/requireAuth.js';
 
 console.log('✅ BOOKINGS ROUTER LOADED - UUID version');
 
@@ -96,7 +97,6 @@ router.post('/', async (req, res) => {
     console.log(`💰 Payment method received: ${payment_method}`);
     console.log(`📝 Is custom offer: ${is_custom_offer}`);
 
-    // 🔴 CHANGED: Use final_package_id (computed below) in the INSERT instead of raw package_id
     const final_package_id = (is_custom_offer || package_id === 'custom') ? null : package_id;
     
     const validationErrors = [];
@@ -134,7 +134,6 @@ router.post('/', async (req, res) => {
 
     console.log('✅ Worker verified:', workers[0].name);
 
-    // 🔴 CHANGED: Hardened fallback chain — handles undefined/null/0/string values safely
     const numericTotal = parseFloat(total_amount) || 0;
     const numericCustom = parseFloat(custom_price) || 0;
     const final_amount = numericTotal > 0
@@ -166,18 +165,16 @@ router.post('/', async (req, res) => {
 	  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	  [
 		bookingId, client_id, worker_id,
-		final_package_id,           // 🔴 CHANGED: was package_id
+		final_package_id,
 		booking_date, start_time, end_time,
 		service_details, special_instructions, is_custom_offer,
-		final_amount,               // 🔴 CHANGED: was total_amount
+		final_amount,
 		bookingStatus,
 		payment_method, estimated_hours
 	  ]
 	);
 		
 	console.log('✅ Database insert successful, ID:', bookingId);
-
-	// Push notification removed for V1
 
 	res.json({
 	  success: true,
@@ -231,8 +228,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-//Worker accepts offer
-router.post('/:id/accept', async (req, res) => {
+// Worker accepts offer (WITH AUTH)
+router.post('/:id/accept', requireAuth, requireSelf('worker_id'), async (req, res) => {
   console.log('=== 📥 WORKER ACCEPT OFFER REQUEST ===');
   
   const { id } = req.params;
@@ -242,7 +239,6 @@ router.post('/:id/accept', async (req, res) => {
   try {
     connection = await pool.getConnection();
     
-    // Get current state for audit
     const [oldBooking] = await connection.query(
       'SELECT * FROM bookings WHERE id = ?',
       [id]
@@ -270,13 +266,11 @@ router.post('/:id/accept', async (req, res) => {
       ['offer_accepted', id]
     );
     
-    // Get new state for audit
     const [newBooking] = await connection.query(
       'SELECT * FROM bookings WHERE id = ?',
       [id]
     );
     
-    // Create audit log
     await logAudit({
       userId: worker_id,
       action: 'ACCEPT_OFFER',
@@ -287,7 +281,6 @@ router.post('/:id/accept', async (req, res) => {
       req
     });
     
-    // 🔴 CHANGED: Send a response! (Previously this endpoint hung — no res.json())
     console.log(`✅ Offer #${id} accepted by worker ${booking.worker_name}`);
     res.json({
       success: true,
@@ -308,8 +301,8 @@ router.post('/:id/accept', async (req, res) => {
   }
 });
 
-// Worker rejects offer
-router.post('/:id/reject', async (req, res) => {
+// Worker rejects offer (WITH AUTH)
+router.post('/:id/reject', requireAuth, requireSelf('worker_id'), async (req, res) => {
   console.log('=== 📥 WORKER REJECT OFFER REQUEST ===');
   
   const { id } = req.params;
@@ -378,8 +371,8 @@ router.post('/:id/reject', async (req, res) => {
   }
 });
 
-// Complete payment endpoint
-router.post('/:id/complete-payment', async (req, res) => {
+// Complete payment endpoint (WITH AUTH)
+router.post('/:id/complete-payment', requireAuth, requireSelf('client_id'), async (req, res) => {
   console.log('=== 📥 COMPLETE PAYMENT REQUEST ===');
   
   const { id } = req.params;
@@ -471,8 +464,8 @@ router.post('/:id/complete-payment', async (req, res) => {
   }
 });
 
-// Worker starts job
-router.post('/:id/start', async (req, res) => {
+// Worker starts job (WITH AUTH)
+router.post('/:id/start', requireAuth, requireSelf('worker_id'), async (req, res) => {
   console.log('=== 📥 START JOB REQUEST ===');
   
   const { id } = req.params;
@@ -522,8 +515,8 @@ router.post('/:id/start', async (req, res) => {
   }
 });
 
-// Worker marks job as complete (awaiting client confirmation)
-router.post('/:id/complete', async (req, res) => {
+// Worker marks job as complete (WITH AUTH)
+router.post('/:id/complete', requireAuth, requireSelf('worker_id'), async (req, res) => {
   console.log('=== 📥 COMPLETE JOB REQUEST ===');
   
   const { id } = req.params;
@@ -594,8 +587,8 @@ router.post('/:id/complete', async (req, res) => {
   }
 });
 
-// Client confirms job completion and releases funds
-router.post('/:id/confirm-completion', async (req, res) => {
+// Client confirms job completion (WITH AUTH)
+router.post('/:id/confirm-completion', requireAuth, requireSelf('client_id'), async (req, res) => {
   console.log('=== 📥 CONFIRM COMPLETION REQUEST ===');
   
   const { id } = req.params;
@@ -628,7 +621,6 @@ router.post('/:id/confirm-completion', async (req, res) => {
     const commission = totalAmount * 0.01;
     const workerAmount = totalAmount - commission;
     
-    // Platform commission
     try {
       console.log(`💰 Processing platform commission: $${commission} for booking #${id}`);
       
@@ -966,4 +958,5 @@ router.get('/:id', async (req, res) => {
 });
 
 export default router;
+
 

@@ -122,28 +122,36 @@ export default function AdminDashboard() {
   
   const [suspendReason, setSuspendReason] = useState('');
   
-	const [loading, setLoading] = useState({
-		withdrawals: true,
-		users: true,
-		workers: true,
-		bookings: true,
-		stats: true
-	  });
+  const [loading, setLoading] = useState({
+    withdrawals: true,
+    users: true,
+    workers: true,
+    bookings: true,
+    stats: true
+  });
   
-	const [processingId, setProcessingId] = useState<number | null>(null);
+  const [processingId, setProcessingId] = useState<number | null>(null);
   
-	//Add these state variables with your other useState declarations:
-	const [pendingVerificationRequests, setPendingVerificationRequests] = useState<any[]>([]);
-	const [loadingVerification, setLoadingVerification] = useState(false);
-	const [selectedRequest, setSelectedRequest] = useState<any>(null);
-	const [adminNotes, setAdminNotes] = useState("");
-	const [showRejectDialog, setShowRejectDialog] = useState(false);
-	const [rejectReason, setRejectReason] = useState("");
-	const [verifiedWorkersCount, setVerifiedWorkersCount] = useState(0);
-	
-  // Admin check
-  const isAdmin = user?.id === 'c8008077-f7ab-11f0-b194-8d6e8344ca2c';
+  // Verification requests state
+  const [pendingVerificationRequests, setPendingVerificationRequests] = useState<any[]>([]);
+  const [loadingVerification, setLoadingVerification] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [adminNotes, setAdminNotes] = useState("");
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [verifiedWorkersCount, setVerifiedWorkersCount] = useState(0);
   
+  // ✅ FIX: DB-backed admin check (replaces hardcoded UUID)
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    fetch(`https://one2fingers-backend.onrender.com/api/admin/check/${user.id}`)
+      .then(r => r.json())
+      .then(d => setIsAdmin(!!d.is_admin))
+      .catch(() => setIsAdmin(false));
+  }, [user]);
+
   const formatAmount = (amount: number | string): string => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
     return isNaN(num) ? '0.00' : num.toFixed(2);
@@ -183,8 +191,10 @@ export default function AdminDashboard() {
     });
   };
 
+  // ✅ FIX: Wait for isAdmin to resolve before redirecting
   useEffect(() => {
     if (!user) return;
+    if (isAdmin === null) return;   // ← Wait for the check to complete
     
     if (!isAdmin) {
       navigate('/dashboard');
@@ -194,18 +204,18 @@ export default function AdminDashboard() {
     fetchAllData();
   }, [user, isAdmin]);
 
-  	const fetchAllData = async () => {
-	  setApiErrors([]);
-	  await Promise.all([
-		fetchPendingWithdrawals(),
-		fetchUsers(),
-		fetchWorkers(),
-		fetchBookings(),
-		fetchStats(),
-		fetchVerificationRequests(), // ← add this
-		fetchVerifiedWorkersCount(), // ← add this
-	  ]);
-	};
+  const fetchAllData = async () => {
+    setApiErrors([]);
+    await Promise.all([
+      fetchPendingWithdrawals(),
+      fetchUsers(),
+      fetchWorkers(),
+      fetchBookings(),
+      fetchStats(),
+      fetchVerificationRequests(),
+      fetchVerifiedWorkersCount(),
+    ]);
+  };
 
   const fetchPendingWithdrawals = async () => {
     try {
@@ -255,46 +265,45 @@ export default function AdminDashboard() {
     }
   };
 
-	const fetchStats = async () => {
-		try {
-		  setLoading(prev => ({ ...prev, stats: true }));
-		  const data = await fetchWithRetry('https://one2fingers-backend.onrender.com/api/admin/stats');
-		  setStats(data.stats || null);
-		} catch (error) {
-		  handleFetchError(error, 'statistics');
-		} finally {
-		  setLoading(prev => ({ ...prev, stats: false }));
-		}
-	};
-	
-	const fetchVerificationRequests = async () => {
-		try {
-		setLoadingVerification(true);
-		const response = await fetch('https://one2fingers-backend.onrender.com/api/verification/pending');
-		const data = await response.json();
-		if (data.success) {
-		  setPendingVerificationRequests(data.requests || []);
-		}
-	  } catch (error) {
-		console.error('Error fetching verification requests:', error);
-	  } finally {
-		setLoadingVerification(false);
-	  }
-	};
-	
-	const fetchVerifiedWorkersCount = async () => {
-	  try {
-		const response = await fetch('https://one2fingers-backend.onrender.com/api/admin/workers');
-		const data = await response.json();
-		if (data.success) {
-		  const verifiedCount = data.workers.filter((w: any) => w.is_verified === 1).length;
-		  setVerifiedWorkersCount(verifiedCount);
-		}
-	  } catch (error) {
-		console.error('Error fetching verified workers count:', error);
-	  }
-	};
-
+  const fetchStats = async () => {
+    try {
+      setLoading(prev => ({ ...prev, stats: true }));
+      const data = await fetchWithRetry('https://one2fingers-backend.onrender.com/api/admin/stats');
+      setStats(data.stats || null);
+    } catch (error) {
+      handleFetchError(error, 'statistics');
+    } finally {
+      setLoading(prev => ({ ...prev, stats: false }));
+    }
+  };
+  
+  const fetchVerificationRequests = async () => {
+    try {
+      setLoadingVerification(true);
+      const response = await fetch('https://one2fingers-backend.onrender.com/api/verification/pending');
+      const data = await response.json();
+      if (data.success) {
+        setPendingVerificationRequests(data.requests || []);
+      }
+    } catch (error) {
+      console.error('Error fetching verification requests:', error);
+    } finally {
+      setLoadingVerification(false);
+    }
+  };
+  
+  const fetchVerifiedWorkersCount = async () => {
+    try {
+      const response = await fetch('https://one2fingers-backend.onrender.com/api/admin/workers');
+      const data = await response.json();
+      if (data.success) {
+        const verifiedCount = data.workers.filter((w: any) => w.is_verified === 1).length;
+        setVerifiedWorkersCount(verifiedCount);
+      }
+    } catch (error) {
+      console.error('Error fetching verified workers count:', error);
+    }
+  };
 
   const handleProcessWithdrawal = async (withdrawalId: number, action: 'approve' | 'reject') => {
     try {
@@ -480,68 +489,68 @@ export default function AdminDashboard() {
       });
     }
   };
-	
-	const handleApproveVerification = async (requestId: string) => {
-		try {
-			const response = await fetch(`https://one2fingers-backend.onrender.com/api/verification/approve/${requestId}`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ admin_id: user?.id, notes: adminNotes }),
-			});
-			const data = await response.json();
-				if (data.success) {
-				toast({ title: "Approved", description: "Worker verification approved" });
-				fetchVerificationRequests();
-				fetchWorkers(); // Refresh workers list to update verified status
-				setAdminNotes("");
-				setSelectedRequest(null);
-			} else {
-			throw new Error(data.error);
-			}
-		} catch (error: any) {
-			toast({ title: "Error", description: error.message, variant: "destructive" });
-		}
-	};
+  
+  const handleApproveVerification = async (requestId: string) => {
+    try {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/verification/approve/${requestId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_id: user?.id, notes: adminNotes }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast({ title: "Approved", description: "Worker verification approved" });
+        fetchVerificationRequests();
+        fetchWorkers();
+        setAdminNotes("");
+        setSelectedRequest(null);
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
 
-	const handleRejectVerification = async (requestId: string) => {
-		if (!rejectReason.trim()) {
-			toast({ title: "Error", description: "Please provide a reason for rejection", variant: "destructive" });
-			return;
-		}
-		try {
-			const response = await fetch(`https://one2fingers-backend.onrender.com/api/verification/reject/${requestId}`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ admin_id: user?.id, reason: rejectReason }),
-		});
-		const data = await response.json();
-			if (data.success) {
-			toast({ title: "Rejected", description: "Worker verification rejected" });
-			fetchVerificationRequests();
-			setRejectReason("");
-			setShowRejectDialog(false);
-			setSelectedRequest(null);
-		} else {
-		  throw new Error(data.error);
-		}
-	} catch (error: any) {
-		toast({ title: "Error", description: error.message, variant: "destructive" });
-	  }
-	};
-	
-	const getStatusBadge = (status: string) => {
-		const variants: { [key: string]: string } = {
-		  'pending': 'bg-gray-100 text-gray-800',
-		  'offer_pending': 'bg-yellow-100 text-yellow-800',
-		  'offer_accepted': 'bg-blue-100 text-blue-800',
-		  'confirmed': 'bg-purple-100 text-purple-800',
-		  'in_progress': 'bg-green-100 text-green-800',
-		  'awaiting_confirmation': 'bg-orange-100 text-orange-800',
-		  'completed': 'bg-green-600 text-white',
-		  'cancelled': 'bg-red-100 text-red-800'
-		};
-		return variants[status] || 'bg-gray-100 text-gray-800';
-	};
+  const handleRejectVerification = async (requestId: string) => {
+    if (!rejectReason.trim()) {
+      toast({ title: "Error", description: "Please provide a reason for rejection", variant: "destructive" });
+      return;
+    }
+    try {
+      const response = await fetch(`https://one2fingers-backend.onrender.com/api/verification/reject/${requestId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_id: user?.id, reason: rejectReason }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast({ title: "Rejected", description: "Worker verification rejected" });
+        fetchVerificationRequests();
+        setRejectReason("");
+        setShowRejectDialog(false);
+        setSelectedRequest(null);
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+  
+  const getStatusBadge = (status: string) => {
+    const variants: { [key: string]: string } = {
+      'pending': 'bg-gray-100 text-gray-800',
+      'offer_pending': 'bg-yellow-100 text-yellow-800',
+      'offer_accepted': 'bg-blue-100 text-blue-800',
+      'confirmed': 'bg-purple-100 text-purple-800',
+      'in_progress': 'bg-green-100 text-green-800',
+      'awaiting_confirmation': 'bg-orange-100 text-orange-800',
+      'completed': 'bg-green-600 text-white',
+      'cancelled': 'bg-red-100 text-red-800'
+    };
+    return variants[status] || 'bg-gray-100 text-gray-800';
+  };
 
   if (!user) {
     return (
@@ -549,6 +558,18 @@ export default function AdminDashboard() {
         <div className="text-center">
           <div className="h-8 w-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
           <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ FIX: Show "Verifying" spinner while admin check is in progress
+  if (isAdmin === null) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="h-8 w-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Verifying admin access...</p>
         </div>
       </div>
     );
@@ -585,11 +606,11 @@ export default function AdminDashboard() {
       {/* Navigation Buttons */}
       <div className="flex gap-2 mb-6">
         <Button asChild variant="ghost" size="sm">
-			<Link to="/">
-				<ArrowLeft className="h-4 w-4 mr-1" />
-				Back
-			</Link>
-		</Button>
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back
+          </Link>
+        </Button>
       </div>
 
       <div className="flex items-center justify-between mb-8">
@@ -652,86 +673,86 @@ export default function AdminDashboard() {
 
     <Tabs defaultValue="withdrawals" className="space-y-4">
         <TabsList>
-			  <TabsTrigger value="withdrawals" className="flex items-center gap-2">
-				<DollarSign className="h-4 w-4" />
-				Withdrawals ({pendingWithdrawals.length})
-			  </TabsTrigger>
-			  <TabsTrigger value="users" className="flex items-center gap-2">
-				<Users className="h-4 w-4" />
-				Users ({users.length})
-			  </TabsTrigger>
-			  <TabsTrigger value="workers" className="flex items-center gap-2">
-				<Briefcase className="h-4 w-4" />
-				Workers ({workers.length})
-			  </TabsTrigger>
-			  <TabsTrigger value="bookings" className="flex items-center gap-2">
-				<Calendar className="h-4 w-4" />
-				Bookings ({bookings.length})
-			  </TabsTrigger>
-			  <TabsTrigger value="verification" className="flex items-center gap-2">
-				<Shield className="h-4 w-4" />
-				Verification Requests ({pendingVerificationRequests.length})
-				<Badge variant="secondary" className="ml-1 bg-green-100 text-green-800">
-					{verifiedWorkersCount} verified
-				</Badge>
-			  </TabsTrigger>
-		</TabsList>
+          <TabsTrigger value="withdrawals" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Withdrawals ({pendingWithdrawals.length})
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Users ({users.length})
+          </TabsTrigger>
+          <TabsTrigger value="workers" className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4" />
+            Workers ({workers.length})
+          </TabsTrigger>
+          <TabsTrigger value="bookings" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Bookings ({bookings.length})
+          </TabsTrigger>
+          <TabsTrigger value="verification" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Verification Requests ({pendingVerificationRequests.length})
+            <Badge variant="secondary" className="ml-1 bg-green-100 text-green-800">
+              {verifiedWorkersCount} verified
+            </Badge>
+          </TabsTrigger>
+        </TabsList>
 
         {/* Withdrawals Tab */}
         <TabsContent value="withdrawals">
           <Card>
-				<CardHeader>
-				  <CardTitle className="flex items-center gap-2">
-					<Clock className="h-5 w-5 text-yellow-500" />
-					Pending Withdrawal Requests
-				  </CardTitle>
-				</CardHeader>
-				<CardContent>
-					{loading.withdrawals ? (
-						<div className="space-y-3">
-							{[1,2,3].map(i => (
-								<div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
-							))}
-						</div>
-					  ) : apiErrors.includes('withdrawals') ? (
-						<div className="text-center py-8">
-						  <AlertTriangle className="h-12 w-12 text-red-300 mx-auto mb-3" />
-						  <p className="text-gray-500">Failed to load withdrawals</p>
-						  <Button variant="outline" size="sm" onClick={fetchPendingWithdrawals} className="mt-2">
-							<RefreshCw className="h-3 w-3 mr-2" />
-							Retry
-						  </Button>
-						</div>
-					  ) : pendingWithdrawals.length === 0 ? (
-						<div className="text-center py-8">
-						  <CheckCircle className="h-12 w-12 text-green-300 mx-auto mb-3" />
-						  <p className="text-gray-500">No pending withdrawals</p>
-						</div>
-					  ) : (
-					<div className="space-y-4">
-						{pendingWithdrawals.map((withdrawal) => (
-							<Card key={withdrawal.id} className="p-4 border-l-4 border-l-yellow-500">
-								<div className="flex justify-between items-start">
-									<div>
-									  <h3 className="font-semibold text-lg">
-										{withdrawal.worker_name}
-									  </h3>
-									  <p className="text-sm text-gray-600">
-										Requested: {format(new Date(withdrawal.requested_at), 'PPP p')}
-									  </p>
-									  <p className="text-xs text-gray-500">
-										Worker ID: {withdrawal.worker_id.substring(0, 8)}...
-									  </p>
-									</div>
-									<div className="text-right">
-									  <p className="text-2xl font-bold text-blue-600">
-										${formatAmount(withdrawal.amount)}
-									  </p>
-									  <Badge className="bg-yellow-100 text-yellow-800">
-										{withdrawal.status}
-									  </Badge>
-									</div>
-								</div>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-yellow-500" />
+                Pending Withdrawal Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading.withdrawals ? (
+                <div className="space-y-3">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
+                  ))}
+                </div>
+              ) : apiErrors.includes('withdrawals') ? (
+                <div className="text-center py-8">
+                  <AlertTriangle className="h-12 w-12 text-red-300 mx-auto mb-3" />
+                  <p className="text-gray-500">Failed to load withdrawals</p>
+                  <Button variant="outline" size="sm" onClick={fetchPendingWithdrawals} className="mt-2">
+                    <RefreshCw className="h-3 w-3 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              ) : pendingWithdrawals.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckCircle className="h-12 w-12 text-green-300 mx-auto mb-3" />
+                  <p className="text-gray-500">No pending withdrawals</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingWithdrawals.map((withdrawal) => (
+                    <Card key={withdrawal.id} className="p-4 border-l-4 border-l-yellow-500">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-lg">
+                            {withdrawal.worker_name}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Requested: {format(new Date(withdrawal.requested_at), 'PPP p')}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Worker ID: {withdrawal.worker_id.substring(0, 8)}...
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-blue-600">
+                            ${formatAmount(withdrawal.amount)}
+                          </p>
+                          <Badge className="bg-yellow-100 text-yellow-800">
+                            {withdrawal.status}
+                          </Badge>
+                        </div>
+                      </div>
                       
                       <div className="flex gap-2 mt-4">
                         <Button
@@ -1038,133 +1059,133 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-		
-			{/* Verification Tab */}
-<TabsContent value="verification">
-  <Card>
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <Shield className="h-5 w-5 text-blue-500" />
-        Verification Requests
-      </CardTitle>
-      <CardDescription>Review and process worker verification requests</CardDescription>
-    </CardHeader>
-    <CardContent>
-      {loadingVerification ? (
-        <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>)}
-        </div>
-      ) : pendingVerificationRequests.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No pending verification requests</div>
-      ) : (
-        <div className="space-y-4">
-          {pendingVerificationRequests.map((req) => (
-            <Card key={req.id} className="p-4 border-l-4 border-l-yellow-500">
-              <div className="flex justify-between items-start">
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">{req.worker_name}</h3>
-                  
-                  {/* Identity Information */}
-                  <div className="bg-gray-50 p-3 rounded-md space-y-1">
-                    <p className="text-sm font-medium">Identity Information:</p>
-                    <p className="text-sm">Legal Name: <span className="font-semibold">{req.legal_name}</span></p>
-                    <p className="text-sm">ID Type: {req.id_type} | ID Number: {req.id_number}</p>
-                    {req.document_url && (
-                      <div className="mt-2">
-                        <a 
-                          href={`https://one2fingers-backend.onrender.com${req.document_url}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-sm text-blue-600 hover:underline flex items-center gap-1"
-                        >
-                          <FileText className="h-4 w-4" />
-                          View Uploaded Document
-                        </a>
+        
+        {/* Verification Tab */}
+        <TabsContent value="verification">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-blue-500" />
+                Verification Requests
+              </CardTitle>
+              <CardDescription>Review and process worker verification requests</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingVerification ? (
+                <div className="space-y-3">
+                  {[1,2,3].map(i => <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>)}
+                </div>
+              ) : pendingVerificationRequests.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">No pending verification requests</div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingVerificationRequests.map((req) => (
+                    <Card key={req.id} className="p-4 border-l-4 border-l-yellow-500">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <h3 className="font-semibold text-lg">{req.worker_name}</h3>
+                          
+                          {/* Identity Information */}
+                          <div className="bg-gray-50 p-3 rounded-md space-y-1">
+                            <p className="text-sm font-medium">Identity Information:</p>
+                            <p className="text-sm">Legal Name: <span className="font-semibold">{req.legal_name}</span></p>
+                            <p className="text-sm">ID Type: {req.id_type} | ID Number: {req.id_number}</p>
+                            {req.document_url && (
+                              <div className="mt-2">
+                                <a 
+                                  href={`https://one2fingers-backend.onrender.com${req.document_url}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  View Uploaded Document
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Business Information (if provided) */}
+                          {(req.business_name || req.business_type) && (
+                            <div className="bg-gray-50 p-3 rounded-md space-y-1">
+                              <p className="text-sm font-medium">Business Information:</p>
+                              {req.business_name && <p className="text-sm">Business Name: {req.business_name}</p>}
+                              {req.business_type && <p className="text-sm">Business Type: {req.business_type}</p>}
+                            </div>
+                          )}
+                          
+                          <p className="text-xs text-gray-400">Requested: {new Date(req.requested_at).toLocaleDateString()}</p>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectedRequest(req);
+                              setAdminNotes("");
+                              handleApproveVerification(req.id);
+                            }}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setSelectedRequest(req);
+                              setShowRejectDialog(true);
+                            }}
+                          >
+                            Reject
+                          </Button>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  
-                  {/* Business Information (if provided) */}
-                  {(req.business_name || req.business_type) && (
-                    <div className="bg-gray-50 p-3 rounded-md space-y-1">
-                      <p className="text-sm font-medium">Business Information:</p>
-                      {req.business_name && <p className="text-sm">Business Name: {req.business_name}</p>}
-                      {req.business_type && <p className="text-sm">Business Type: {req.business_type}</p>}
-                    </div>
-                  )}
-                  
-                  <p className="text-xs text-gray-400">Requested: {new Date(req.requested_at).toLocaleDateString()}</p>
+                    </Card>
+                  ))}
                 </div>
-                
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setSelectedRequest(req);
-                      setAdminNotes("");
-                      handleApproveVerification(req.id);
-                    }}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => {
-                      setSelectedRequest(req);
-                      setShowRejectDialog(true);
-                    }}
-                  >
-                    Reject
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
-    </CardContent>
-  </Card>
-</TabsContent>
-	</Tabs>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Suspend User Dialog */}
       <Dialog open={showSuspendDialog} onOpenChange={setShowSuspendDialog}>
-			<DialogContent>
-			  <DialogHeader>
-				<DialogTitle>Suspend User</DialogTitle>
-				<DialogDescription>
-				  Are you sure you want to suspend {selectedUserName}? They will not be able to log in.
-				</DialogDescription>
-			  </DialogHeader>
-			  
-			  <div className="space-y-4 py-4">
-				<div className="space-y-2">
-				  <Label htmlFor="reason">Suspension Reason</Label>
-				  <textarea
-					id="reason"
-					className="w-full min-h-[100px] p-3 border rounded-md"
-					placeholder="Enter reason for suspension..."
-					value={suspendReason}
-					onChange={(e) => setSuspendReason(e.target.value)}
-				  />
-				</div>
-				
-				<div className="flex gap-2 justify-end">
-				  <Button variant="outline" onClick={() => setShowSuspendDialog(false)}>
-					Cancel
-				  </Button>
-				  <Button 
-					onClick={handleSuspendUser}
-					disabled={!suspendReason.trim()}
-					className="bg-red-600 hover:bg-red-700"
-				  >
-					Suspend User
-				  </Button>
-				</div>
-			  </div>
-			</DialogContent>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspend User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to suspend {selectedUserName}? They will not be able to log in.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reason">Suspension Reason</Label>
+              <textarea
+                id="reason"
+                className="w-full min-h-[100px] p-3 border rounded-md"
+                placeholder="Enter reason for suspension..."
+                value={suspendReason}
+                onChange={(e) => setSuspendReason(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowSuspendDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSuspendUser}
+                disabled={!suspendReason.trim()}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Suspend User
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
       </Dialog>
 
       {/* Suspend Worker Dialog */}
@@ -1204,42 +1225,41 @@ export default function AdminDashboard() {
           </div>
         </DialogContent>
       </Dialog>
-	  
-		
-		{/* Reject Verification Dialog */}
-		<Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-		  <DialogContent>
-			<DialogHeader>
-			  <DialogTitle>Reject Verification Request</DialogTitle>
-			  <DialogDescription>
-				Please provide a reason for rejecting this verification request.
-				The worker will see this reason and may reapply.
-			  </DialogDescription>
-			</DialogHeader>
-			<div className="space-y-4 py-4">
-			  <div className="space-y-2">
-				<Label htmlFor="reject-reason">Rejection Reason</Label>
-				<textarea
-				  id="reject-reason"
-				  className="w-full min-h-[100px] p-3 border rounded-md"
-				  placeholder="Enter reason for rejection..."
-				  value={rejectReason}
-				  onChange={(e) => setRejectReason(e.target.value)}
-				/>
-			  </div>
-			  <div className="flex gap-2 justify-end">
-				<Button variant="outline" onClick={() => setShowRejectDialog(false)}>Cancel</Button>
-				<Button 
-				  onClick={() => selectedRequest && handleRejectVerification(selectedRequest.id)}
-				  className="bg-red-600 hover:bg-red-700"
-				>
-				  Confirm Rejection
-				</Button>
-			  </div>
-			</div>
-		  </DialogContent>
-		</Dialog>
-	  
+      
+      {/* Reject Verification Dialog */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Verification Request</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this verification request.
+              The worker will see this reason and may reapply.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reject-reason">Rejection Reason</Label>
+              <textarea
+                id="reject-reason"
+                className="w-full min-h-[100px] p-3 border rounded-md"
+                placeholder="Enter reason for rejection..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowRejectDialog(false)}>Cancel</Button>
+              <Button 
+                onClick={() => selectedRequest && handleRejectVerification(selectedRequest.id)}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Confirm Rejection
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
     </div>
   );
 }

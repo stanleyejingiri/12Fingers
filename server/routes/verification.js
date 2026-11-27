@@ -1,9 +1,10 @@
-//server/routes/verifications.js
+// server/routes/verification.js
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import { pool } from '../database.js';
 import fs from 'fs';
+import { requireAdmin } from '../middleware/requireAdmin.js';
 
 const router = express.Router();
 
@@ -21,13 +22,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
 
-// Submit verification request
+// Submit verification request (worker-facing, no admin)
 router.post('/request', upload.single('document'), async (req, res) => {
   const { worker_id, legal_name, id_number, id_type, business_name, business_type } = req.body;
   const document_url = req.file ? `/uploads/verification/${req.file.filename}` : null;
 
   try {
-    // Check if already pending
     const [existing] = await pool.query(
       'SELECT id FROM verification_requests WHERE worker_id = ? AND status = "pending"',
       [worker_id]
@@ -50,8 +50,8 @@ router.post('/request', upload.single('document'), async (req, res) => {
   }
 });
 
-// Admin: Get pending verification requests
-router.get('/pending', async (req, res) => {
+// Admin: Get pending verification requests (WITH ADMIN AUTH)
+router.get('/pending', requireAdmin, async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT vr.*, wp.name as worker_name 
@@ -67,17 +67,17 @@ router.get('/pending', async (req, res) => {
   }
 });
 
-// Admin: Approve verification
-router.post('/approve/:requestId', async (req, res) => {
+// Admin: Approve verification (WITH ADMIN AUTH)
+router.post('/approve/:requestId', requireAdmin, async (req, res) => {
   const { requestId } = req.params;
-  const { admin_id, notes } = req.body;
+  const { notes } = req.body;
+  const admin_id = req.admin.id;
 
   try {
     await pool.query(
       `UPDATE verification_requests SET status = 'approved', admin_notes = ?, reviewed_at = NOW(), reviewed_by = ? WHERE id = ?`,
       [notes, admin_id, requestId]
     );
-    // Get worker_id to update worker_profiles
     const [reqRow] = await pool.query('SELECT worker_id FROM verification_requests WHERE id = ?', [requestId]);
     if (reqRow.length) {
       await pool.query('UPDATE worker_profiles SET is_verified = 1 WHERE id = ?', [reqRow[0].worker_id]);
@@ -89,10 +89,11 @@ router.post('/approve/:requestId', async (req, res) => {
   }
 });
 
-// Admin: Reject verification
-router.post('/reject/:requestId', async (req, res) => {
+// Admin: Reject verification (WITH ADMIN AUTH)
+router.post('/reject/:requestId', requireAdmin, async (req, res) => {
   const { requestId } = req.params;
-  const { admin_id, reason } = req.body;
+  const { reason } = req.body;
+  const admin_id = req.admin.id;
 
   try {
     await pool.query(
