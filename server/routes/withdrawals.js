@@ -2,18 +2,7 @@
 import express from 'express';
 import { pool } from '../database.js';
 import Stripe from 'stripe';
-// Add this import at the top:
 import { requireAdmin } from '../middleware/requireAdmin.js';
-
-// Change the /process route definition:
-router.post('/process/:withdrawalId', requireAdmin, async (req, res) => {
-  // ... rest of existing handler unchanged
-});
-
-// Change the /pending route definition:
-router.get('/pending', requireAdmin, async (req, res) => {
-  // ... rest of existing handler unchanged
-});
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -155,8 +144,8 @@ router.post('/request', async (req, res) => {
   }
 });
 
-// Admin: Process withdrawal (approve and send via Stripe)
-router.post('/process/:withdrawalId', async (req, res) => {
+// Admin: Process withdrawal (approve and send via Stripe) — WITH ADMIN AUTH
+router.post('/process/:withdrawalId', requireAdmin, async (req, res) => {
   const { withdrawalId } = req.params;
   const { admin_id, action } = req.body; // action: 'approve' or 'reject'
   
@@ -275,8 +264,8 @@ router.post('/process/:withdrawalId', async (req, res) => {
   }
 });
 
-// GET pending withdrawals (for admin)
-router.get('/pending', async (req, res) => {
+// GET pending withdrawals (for admin) — WITH ADMIN AUTH
+router.get('/pending', requireAdmin, async (req, res) => {
   try {
     console.log('📥 GET /api/withdrawals/pending');
     
